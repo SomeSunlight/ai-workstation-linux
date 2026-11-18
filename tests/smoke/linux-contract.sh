@@ -10,6 +10,8 @@ python3 -m json.tool config/versions.json >/dev/null
 [[ ! -e aiw.cmd ]]
 [[ ! -e ansible/roles/docker_engine ]]
 [[ ! -e bin/aiw-core ]]
+[[ -f docs/operator.md && -f docs/nemoclaw-recovery.md ]]
+! grep -q "docs/nemoclaw-operator.md" bin/aiw-nemo
 # The source installer must not call monolithic AIW, WSL or a Windows service.
 ! grep -Eq 'bin/aiw[[:space:]]|wsl\.exe|powershell\.exe|Services\.ps1|docker-compose' bootstrap/linux/install.sh
 tmp="$(mktemp -d)"
