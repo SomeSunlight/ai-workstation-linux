@@ -68,7 +68,7 @@ status() {
     else
         printf 'NemoClaw Hermes CLI not yet installed. Choose option 2 after installation.\n'
     fi
-    printf 'Guide: %s/docs/nemoclaw-operator.md\n' "$ROOT"
+    printf 'Guide: %s/docs/operator.md\n' "$ROOT"
 }
 onboard() {
     command -v nemohermes >/dev/null 2>&1 || {
@@ -79,7 +79,7 @@ onboard() {
     printf 'Official NemoClaw onboarding: use only for a deliberate provider/setup change, not normal restart.\n'
     printf 'GPU passthrough: DISABLED (--no-gpu). OpenRouter needs no NVIDIA CUDA/CDI.\n'
     printf 'Enter credentials ONLY in the official wizard, never in AIW or Git.\n'
-    printf 'Managed Windows Ollama and NVIDIA GPU passthrough are disabled.\n'
+    printf 'Managed host Ollama and NVIDIA GPU passthrough are disabled.\n'
     # The CPU/remote-inference profile must skip NVIDIA CDI checks even when
     # Docker advertises generic CDISpecDirs without nvidia.com/gpu devices.
     # Preserve the choice on --resume; any future GPU enablement is an
