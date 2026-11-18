@@ -28,15 +28,20 @@ No WSL/Windows operations, no implicit onboarding, rebuild or destroy.
 HELP
 }
 
-for arg in "$@"; do
-    case "$arg" in
-        install|verify|status) ACTION="$arg" ;;
+while (($#)); do
+    case "$1" in
+        install|verify|status) ACTION="$1" ;;
         --version|version) ACTION=version ;;
         --yes|-y) ASSUME_YES=true ;;
-        --profile=nemoclaw-podman|--profile=nemoclaw) ;;
+        --profile)
+            [[ $# -ge 2 && "$2" == nemoclaw-podman ]] ||
+                fail 'Only --profile nemoclaw-podman is supported.'
+            shift ;;
+        --profile=nemoclaw-podman) ;;
         --help|-h) usage; exit 0 ;;
-        *) fail "Unsupported argument: $arg" ;;
+        *) fail "Unsupported argument: $1" ;;
     esac
+    shift
 done
 
 json() {
