@@ -63,11 +63,9 @@ version() {
 
 preflight() {
     [[ "$(id -u)" != 0 ]] || fail 'Run as a regular Linux user, not root.'
-    [[ "$ROOT" != /mnt/* ]] || {
-        if grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null; then
-            fail 'Under WSL keep the Linux checkout on its ext4 filesystem, not /mnt.'
-        fi
-    }
+    if [[ "$ROOT" == /mnt/* ]] && grep -Eqi 'microsoft|wsl' /proc/sys/kernel/osrelease 2>/dev/null; then
+        fail 'Under WSL keep the Linux checkout on its ext4 filesystem, not /mnt.'
+    fi
     [[ -f "$VERSIONS" ]] || fail "Missing $VERSIONS"
     [[ -r /etc/os-release ]] || fail 'Cannot read /etc/os-release'
     . /etc/os-release
@@ -97,7 +95,7 @@ verify() {
     command -v python3 >/dev/null || fail 'Python3 missing'
     command -v podman >/dev/null || fail 'Podman missing'
     local v socket runtime_file
-    v="$(dpkg-query -W -f='\${Version}' podman 2>/dev/null)" ||
+    v="$(dpkg-query -W -f='${Version}' podman 2>/dev/null)" ||
         fail 'Cannot determine installed Podman package.'
     [[ "$v" == "$(json versions.nemoclaw_podman.podman.apt_package_version)" ]] ||
         fail "Podman version differs from pin ($v)."
