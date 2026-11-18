@@ -1,17 +1,21 @@
 # ContextCanon integration — Linux development branch
 
-**Status:** reusable Development Workflow parent not yet adopted or built.
-This document supplies the exact non-destructive procedure; do not write
-`ctx:source` metadata, digests or generated `.context` packages manually.
+**Status (2026-11-18): completed on Draft PR #1.** ContextCanon 0.10.0,
+pinned to source commit `5a1f2bf`, executed official `build → source adopt
+→ build → check` in an isolated GitHub Actions runner. The Development
+Workflow `0.3.9-draft` was accepted as normative Parent; the official build
+generated and committed IDs, digests, and immutable snapshots. The check
+returned OK. Regular Linux CI now verifies these generated files read-only.
 
-The local [CONTEXT.src.md](../CONTEXT.src.md) contains the independent Linux
-rules and a stable Node identity. [contextcanon.yaml](../contextcanon.yaml)
-declares the reviewed Development Workflow upstream mapping to
-`SomeSunlight/context-canon`. Parent version `0.3.9-draft` was observed
-upstream on 2026-11-18; the **exact accepted commit and package digests
-must come from ContextCanon's official source adoption**, not from the
-branch name or this documentation.
+The independent [CONTEXT.src.md](../CONTEXT.src.md) is the authored Linux
+context and [contextcanon.yaml](../contextcanon.yaml) maps upstream
+Development Workflow discovery. Future updates must use
+`contextcanon source update "Development Workflow"` with a deliberate
+review, followed by `build` and `check`; never edit generated outputs
+or machine-significant digests by hand.
 
+The following procedure remains as a reproducibility/recovery guide,
+**not** a pending action for the existing `AIW-Nemo` host.
 ## On a separate development checkout
 
 Use a **development checkout**, preferably outside the live WSL test distro.
