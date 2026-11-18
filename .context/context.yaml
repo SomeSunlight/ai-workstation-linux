@@ -1,0 +1,108 @@
+# GENERATED ContextCanon machine state for AI Workstation Linux.
+# Humans normally read CONTEXT.src.md or CONTEXT.md instead.
+# This file is deterministic compiler output and must not be edited manually.
+
+schema: contextcanon/v0
+compiler_version: "0.8.0"
+
+# Stable logical Node identity. The filesystem path is deliberately not identity.
+node:
+  id: "b1602355-12c7-4664-9b79-09cf20764c82"
+  name: "AI Workstation Linux"
+  version: "0.1.1-draft"
+
+# Accepted semantic Parent packages. Locators are discovery metadata; build uses only exact pins.
+parents: []
+
+# Immutable import carriers. relationship is the public semantic kind; Source remains technical provenance.
+sources:
+  - id: "c4c94726-3cc7-4df6-b779-72bbf9c06f40"
+    name: "Development Workflow"
+    version: "0.3.9-draft"
+    relationship: "parent"
+    locator: "contextcanon.yaml"
+    normalized_digest: "f65995239d42a95e91f1f3353772c1c867e8cdac71ba7a8a271cd2ae3e84ddf6"
+    package_digest: "a9cfabdda18aaf0ad33f06708757bd9e73b58243778913e674737e491c31a36c"
+
+# Direct informational References. Their Rules are not effective and they are not exported to Children.
+references: []
+
+# Effective normative imported Context origins, flattened through Parent relationships only.
+imports:
+  - id: "c4c94726-3cc7-4df6-b779-72bbf9c06f40"
+    name: "Development Workflow"
+    version: "0.3.9-draft"
+    normalized_digest: "f65995239d42a95e91f1f3353772c1c867e8cdac71ba7a8a271cd2ae3e84ddf6"
+    package_digest: "a9cfabdda18aaf0ad33f06708757bd9e73b58243778913e674737e491c31a36c"
+
+# Elements authored in this Node's CONTEXT.src.md.
+local:
+  state: null
+  plan: null
+  rules:
+    - {"id": "RULE-A496415DCB9D", "title": "Keep Windows and Linux release identities separate", "group": "Linux project boundaries"}
+    - {"id": "RULE-2234D2634DC1", "title": "Preserve vendor-owned agent state", "group": "Linux project boundaries"}
+    - {"id": "RULE-06C5FA29495A", "title": "Keep native Ubuntu portable", "group": "Linux project boundaries"}
+    - {"id": "RULE-B532DB589234", "title": "Keep secrets out of source and logs", "group": "Linux project boundaries"}
+  changes: []
+  topics: []
+
+# Compiled effective Rule/Topic view with provenance.
+official:
+  rules:
+    - {"id": "CCW-010", "title": "Back every change with an Issue", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-001", "title": "Plan a coherent change block before editing", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-002", "title": "Checkpoint completed plan items immediately", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-003", "title": "Keep recovery-critical knowledge in the repository", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-007", "title": "Resume recent explicit continuation without re-proving unchanged state", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-012", "title": "Mark machine-significant Markdown explicitly", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-015", "title": "Render repository-local Markdown links URL-safely", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-016", "title": "Treat directory cleanup as best-effort, but authoritative data as strict", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-004", "title": "Batch related edits before expensive final verification", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-009", "title": "Use owner-approved Fast Track blocks without weakening the final gate", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-005", "title": "Require exact-head green verification at the merge gate, not the first review gate", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-013", "title": "Prefer editable installs for repeated owner testing", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-014", "title": "Expose development provenance without micro-bumping releases", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-017", "title": "Check remote versions only on request", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-011", "title": "Expand change scope explicitly", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-006", "title": "Do not merge without explicit project-owner approval", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "CCW-008", "title": "Close the post-merge baseline checkpoint before new development", "origin_node_id": "c4c94726-3cc7-4df6-b779-72bbf9c06f40", "origin_node_name": "Development Workflow", "local": false, "overrides": []}
+    - {"id": "RULE-A496415DCB9D", "title": "Keep Windows and Linux release identities separate", "origin_node_id": "b1602355-12c7-4664-9b79-09cf20764c82", "origin_node_name": "AI Workstation Linux", "local": true, "overrides": []}
+    - {"id": "RULE-2234D2634DC1", "title": "Preserve vendor-owned agent state", "origin_node_id": "b1602355-12c7-4664-9b79-09cf20764c82", "origin_node_name": "AI Workstation Linux", "local": true, "overrides": []}
+    - {"id": "RULE-06C5FA29495A", "title": "Keep native Ubuntu portable", "origin_node_id": "b1602355-12c7-4664-9b79-09cf20764c82", "origin_node_name": "AI Workstation Linux", "local": true, "overrides": []}
+    - {"id": "RULE-B532DB589234", "title": "Keep secrets out of source and logs", "origin_node_id": "b1602355-12c7-4664-9b79-09cf20764c82", "origin_node_name": "AI Workstation Linux", "local": true, "overrides": []}
+  removed_rules: []
+  topic_ids: ["CCW-TOPIC-CHANGE-WORKFLOW", "CCW-TOPIC-VERSION-PROVENANCE", "CCW-TOPIC-FILESYSTEM-CLEANUP"]
+  resource_root: "CONTEXT/"
+
+# Topic edges are explicit: kind is resource or context-node; intent is required or optional.
+targets:
+  - topic: "CCW-TOPIC-CHANGE-WORKFLOW"
+    intent: "required"
+    kind: "resource"
+    locator: "CONTEXT/references/ne68be75ed7bf392/docs/change-workflow.md"
+    target_node_id: null
+    target_node_name: null
+  - topic: "CCW-TOPIC-VERSION-PROVENANCE"
+    intent: "required"
+    kind: "resource"
+    locator: "CONTEXT/references/ne68be75ed7bf392/docs/version-provenance-python.md"
+    target_node_id: null
+    target_node_name: null
+  - topic: "CCW-TOPIC-FILESYSTEM-CLEANUP"
+    intent: "required"
+    kind: "resource"
+    locator: "CONTEXT/references/ne68be75ed7bf392/docs/filesystem-cleanup.md"
+    target_node_id: null
+    target_node_name: null
+
+# Mapping from author-facing Resource paths to generated package paths.
+resources:
+  - {"source": null, "published": "CONTEXT/references/ne68be75ed7bf392/docs/change-workflow.md"}
+  - {"source": null, "published": "CONTEXT/references/ne68be75ed7bf392/docs/filesystem-cleanup.md"}
+  - {"source": null, "published": "CONTEXT/references/ne68be75ed7bf392/docs/version-provenance-python.md"}
+
+# Exact deterministic identities. package_digest covers CONTEXT.md plus CONTEXT/ resources.
+package:
+  normalized_digest: "0cc5b9b6706d839d192476bbb05e60aedf9c348040f0e001d4388075b11fd109"
+  package_digest: "e7df3867151f65c675df6ab7ec70518d4440823aa2e46ebc62585a64dbb16791"
