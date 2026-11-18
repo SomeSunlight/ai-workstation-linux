@@ -1,0 +1,22 @@
+name: Validate Linux source
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  source-and-operator:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell, JSON, independent CLI and NemoClaw operator contracts
+        shell: bash
+        run: |
+          bash tests/smoke/linux-contract.sh
+          bash tests/smoke/nemoclaw-operator.sh
+      - name: Verify no Windows and legacy Docker runtime imported
+        shell: bash
+        run: |
+          ! test -e bootstrap/windows
+          ! test -e ansible/roles/docker_engine
+          ! test -e aiw.cmd
