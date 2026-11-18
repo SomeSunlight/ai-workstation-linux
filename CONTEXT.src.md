@@ -20,10 +20,6 @@ Format: - [Name](location) — `version` — `relationship=parent|reference`; op
 Details: CONTEXT-format.md
 -->
 
-<!-- Import the current Development Workflow package using ContextCanon
-     source adopt/update on a qualified workstation. Do not hand-edit
-     machine-significant package pins or generated .context entries. -->
-
 - [Development Workflow](contextcanon.yaml) — `0.3.9-draft` — `relationship=parent`
   <!-- ctx:source id="c4c94726-3cc7-4df6-b779-72bbf9c06f40" version="0.3.9-draft" normalized-digest="f65995239d42a95e91f1f3353772c1c867e8cdac71ba7a8a271cd2ae3e84ddf6" package-digest="a9cfabdda18aaf0ad33f06708757bd9e73b58243778913e674737e491c31a36c" -->
 
