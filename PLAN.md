@@ -9,6 +9,7 @@
 - [x] Official ContextCanon 0.10.0 at `5a1f2bf`: `build → source adopt → build → check` passed on isolated GitHub Actions; immutable Development Workflow `0.3.9-draft` compiled into Linux context, generated files committed. CI now checks it read-only.
 - [ ] Qualify actual `install` on a **clean disposable** Ubuntu 26.04 host (native Linux preferable); current CI checks only the Ansible graph and operator contract.
 - [x] Owner read-only side-by-side AIW-Nemo test: `./install.sh --version`, `status`, `verify`; reported `[OK] Independent Ubuntu/Podman/NemoClaw verification passed.` (2026-11-18). Existing `testhermes01` was not intentionally changed.
+- [x] Owner exercised Linux Hermes operator menu option 7 with numbered existing-sandbox selection and upstream status action on `AIW-Nemo`; reported `Hermes Agent: running` (2026-11-19). No stop/recover/rebuild was performed.
 - [ ] Document a verified restorable backup and perform owner-approved migration or optional clean Hermes onboarding.
 - [x] Windows Draft PR #85 contains a candidate SHA pin and *opt-in read-only* version/status/verify adapter; offline Windows CI green. The production shortcut/installer cutover is still pending.
 - [ ] After owner approval, update Windows candidate pin to the **merged** Linux commit and switch the production bootstrap/shortcut via a separate tested cutover.
