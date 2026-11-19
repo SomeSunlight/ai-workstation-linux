@@ -226,6 +226,73 @@ outside the WSL distro.
 
 Reference: [Python sqlite3.Connection.backup](https://docs.python.org/3/library/sqlite3.html#sqlite3.Connection.backup).
 
+## Owner snapshot acceptance (2026-11-19)
+
+The owner ran the in-sandbox Python SQLite online backup and confirmed
+**both** `[OK]` results without errors:
+`state.db: private snapshot; quick_check=ok` and
+`kanban.db: private snapshot; quick_check=ok`. This validates two
+distinct transactionally consistent snapshot files **inside the existing
+sandbox**. It does **not** mean the copies were exported or persisted
+outside the WSL distribution, and it does not prove a complete Hermes
+restore.
+
+## Next owner test: host-download and independent SQLite integrity checks
+
+From the `AIW-Nemo` **host**, not the connected sandbox, use the actual
+`SNAPSHOT_DIR` printed by the preceding Python command. Substitute
+**only** that string (never copy the source DB path). It must start with
+`/sandbox/.aiw-hermes-sqlite-`. Stop if the path is not known; do not
+guess or automatically select the newest directory.
+
+```bash
+(
+  set -euo pipefail
+  export PATH="$HOME/.local/bin:$PATH"
+  export NEMOCLAW_GATEWAY_RUNTIME=podman
+  umask 077
+
+  SNAPSHOT_DIR='/sandbox/.aiw-hermes-sqlite-REPLACE_WITH_ACTUAL_SUFFIX'
+  [[ "$SNAPSHOT_DIR" == /sandbox/.aiw-hermes-sqlite-* ]] ||
+    { printf '[FAIL] Invalid snapshot directory\n' >&2; exit 1; }
+  [[ "$SNAPSHOT_DIR" != *REPLACE_WITH_ACTUAL_SUFFIX* ]] ||
+    { printf '[FAIL] Set the actual SNAPSHOT_DIR first\n' >&2; exit 1; }
+
+  install -d -m 700 "$HOME/hermes-private-backups"
+  BACKUP_DIR="$(mktemp -d "$HOME/hermes-private-backups/sqlite-XXXXXXXX")"
+
+  for name in state.db kanban.db; do
+    nemohermes testhermes01 download "$SNAPSHOT_DIR/$name" "$BACKUP_DIR/"
+  done
+
+  python3 - "$BACKUP_DIR" <<'PY'
+import sqlite3
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+for name in ("state.db", "kanban.db"):
+    file = root / name
+    if not file.is_file() or file.stat().st_size == 0:
+        raise SystemExit(f"[FAIL] {name}: host copy missing or empty")
+    with sqlite3.connect(file.as_uri() + "?mode=ro&immutable=1", uri=True) as db:
+        result = db.execute("PRAGMA quick_check").fetchall()
+    if result != [("ok",)]:
+        raise SystemExit(f"[FAIL] {name}: host copy quick_check failed")
+    print(f"[OK] {name}: downloaded; host quick_check=ok")
+PY
+  printf 'BACKUP_DIR=%s\n' "$BACKUP_DIR"
+)
+```
+
+The `BACKUP_DIR` line is for the owner's local records only. Do
+**not** share the location, files, DB contents or user-sensitive logs.
+The two `[OK]` checks alone are sufficient acceptance evidence.
+Leave the original snapshots intact for now. The WSL host copy can
+still disappear if that distro is removed/damaged. Next: protected
+off-distro storage, then a separate restoration proof. No raw
+`/sandbox/.hermes/state.db` or `kanban.db` download is intended.
+
 ## 2. Scope the backup before any lifecycle change
 
 NVIDIA's exact pinned NemoClaw source documents that native
