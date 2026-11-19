@@ -53,6 +53,58 @@ databases, chat histories, token values, private hostnames or full logs.
 This proves only that paths exist, **not** that they are consistent,
 complete, backed up or recoverable. It does not stop Hermes.
 
+## Owner inventory acceptance and inference-host restart (2026-11-19)
+
+- An unexpected Windows Update reboot of the separate inference host
+  left its services stopped. From `AIW-Nemo`, an unauthenticated HTTPS
+  `/v1/models` probe returned `HTTP 000` / connection refusal.
+  After the operator explicitly restarted **Speedy's existing services**,
+  the same probe returned `HTTP 401` (HTTPS endpoint reachable, token
+  required). This is **not** proof of authenticated model inference.
+- `nemohermes testhermes01 connect` then **succeeded** without NemoClaw
+  `recover`, onboarding, restart or a change to the recorded route.
+  Before the inference host was restored, `connect` refused a route whose
+  in-sandbox health probe was untrusted: `curl_exit=56`. Do not treat
+  that refusal as proof that Hermes state or the OpenShell gateway
+  was lost.
+- The operator successfully executed the read-only inventory inside
+  `testhermes01`: `SOUL.md`, `state.db`, `kanban.db` are **files**;
+  `profiles/`, `platforms/`, `kanban/` are **directories**.
+  All six exist; no contents or credential material were inspected.
+- **Not yet achieved:** no independent state backup, file-copy trial,
+  consistency check or restore validation; no lifecycle interruption.
+  Windows Update handling is a dependency of the *external inference
+  service*, not a reason to rebuild the Linux sandbox.
+
+## First optional copy test: one non-database file, no sandbox stop
+
+After the inventory gate, the next low-risk acceptance test is to
+exercise the pinned vendor's **manual host download** against only the
+known existing `SOUL.md`. Run from an `AIW-Nemo` *host shell*, **not**
+inside the sandbox. This creates a private host file and does not
+stop or replace the running sandbox:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+export NEMOCLAW_GATEWAY_RUNTIME=podman
+umask 077
+BACKUP_DIR="$HOME/hermes-private-backups/soul-copy-$(date +%Y%m%d-%H%M%S)"
+mkdir -m 700 -p "$BACKUP_DIR"
+nemohermes testhermes01 download /sandbox/.hermes/SOUL.md "$BACKUP_DIR/"
+if [ -s "$BACKUP_DIR/SOUL.md" ]; then
+  printf 'SOUL.md: private host copy present (nonempty)\n'
+else
+  printf 'SOUL.md: missing or empty host copy; inspect download result\n' >&2
+fi
+```
+
+The user should share **only** the vendor success/error and presence
+indicator, never the file, its contents, host paths or other artifacts.
+The file is potentially sensitive. This is a **single-file transfer
+check only**; it is not a state.db consistency test, complete backup,
+off-distro disaster recovery copy or functional restore proof.
+Do not attempt to copy a live SQLite database at this stage.
+
 ## 2. Scope the backup before any lifecycle change
 
 NVIDIA's exact pinned NemoClaw source documents that native
