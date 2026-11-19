@@ -41,11 +41,13 @@ before host replacement or a fresh installation.
 
 ## Before lifecycle testing: record a restorable backup gate
 
-Follow the [Hermes data-safety and restore checklist](hermes-data-safety.md).
-The first step is a read-only inventory of recognized Hermes state paths,
-not a sandbox stop. The upstream `backup-all` operation serves installer
-upgrades and is not a general user-facing snapshot/restore API; do not
-use rebuild/destroy to manufacture an ad hoc backup.
+Follow the [Hermes backup and transfer guide](hermes-data-safety.md).
+**Hermes itself** provides `hermes backup` and `hermes import`, separate
+from NemoClaw's installer-facing `nemohermes backup-all`. Prefer the
+official Hermes user-data backup rather than a custom SQLite/archiver
+workaround. Confirm the command exists in the *installed Hermes image*
+using `hermes backup --help` before running it. Never use rebuild,
+destroy or import to manufacture or test a backup of the live sandbox.
 
 ## External inference host reboot: restore the upstream dependency first
 
