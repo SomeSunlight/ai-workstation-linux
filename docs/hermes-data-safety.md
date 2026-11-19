@@ -105,6 +105,55 @@ check only**; it is not a state.db consistency test, complete backup,
 off-distro disaster recovery copy or functional restore proof.
 Do not attempt to copy a live SQLite database at this stage.
 
+## Owner single-file transfer acceptance (2026-11-19)
+
+The owner successfully ran the above **private host download** and the
+nonempty-file check returned
+`[OK] SOUL.md wurde privat auf den Linux-Host kopiert.`
+The live sandbox was **not** stopped and no database was copied. This
+confirms a host copy of one file only; it is **not yet off-distro** and
+does not establish that the complete Hermes state is backed up.
+
+## Next test: inspect SQLite snapshot capability, read-only
+
+Connect to the existing `testhermes01` through the `AIW-Nemo` host
+shell, not the separate fresh Ubuntu host:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+export NEMOCLAW_GATEWAY_RUNTIME=podman
+nemohermes testhermes01 connect
+```
+
+Inside the sandbox run:
+
+```sh
+if command -v python3 >/dev/null 2>&1; then
+  python3 -c 'import sqlite3; print("Python SQLite:", sqlite3.sqlite_version); print("Online backup API:", "available" if hasattr(sqlite3.Connection, "backup") else "missing")'
+else
+  echo "Python SQLite: Python 3 not installed"
+fi
+for name in state.db kanban.db; do
+  if [ -s "/sandbox/.hermes/$name" ]; then
+    printf 'DATABASE %s: present, nonempty\n' "$name"
+  else
+    printf 'DATABASE %s: missing or empty\n' "$name"
+  fi
+done
+exit
+```
+
+Share only the four summary lines, not files or SQL rows. This
+only tests availability of Python's SQLite online-backup API and the
+two source files; it neither reads private records nor creates a
+snapshot. If Python/sqlite3 is absent, review alternate supported
+methods before installing anything inside the sandbox. If the API
+is present, a *future* snapshot operation should use SQLite's
+transactionally consistent backup API with secure per-database output
+and `PRAGMA quick_check` on the copy, **never a raw live `.db`
+download**. Keep off-distro encrypted copy and separate restore
+validation as later gates.
+
 ## 2. Scope the backup before any lifecycle change
 
 NVIDIA's exact pinned NemoClaw source documents that native
