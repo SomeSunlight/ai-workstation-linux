@@ -75,11 +75,40 @@ image. Share only the version and the relevant backup help/flags,
 do not update Hermes inside the managed sandbox on your own. Review
 the image version/pin and upstream-managed upgrade compatibility first.
 
-## After command support is confirmed (NOT YET EXECUTED)
+## Installed CLI confirmation (2026-11-20)
 
-1. From the sandbox, use `hermes backup -o <private-path>.zip` for a
-   **full** archive. Do not select `--quick` for a migration-grade
-   user-data backup, and check the exit code/any incomplete notices.
+The owner ran `hermes backup --help` inside `testhermes01`.
+The installed Hermes CLI **does** expose full backup with optional
+`-o/--output`, `-q/--quick`, `-l/--label` (quick-only) and
+`-k/--keep N` (default 3, **0 keeps everything**).
+The help command is read-only; **no official full ZIP has been
+created yet**. The owner did not report a version string, so none
+is asserted here.
+
+## Next owner test: native full Hermes backup (NOT YET EXECUTED)
+
+Inside the existing `testhermes01` sandbox shell:
+
+```bash
+umask 077
+hermes backup --keep 0
+```
+
+This requests a **full** Hermes backup using its standard timestamped
+`~/hermes-backup-<timestamp>.zip` output path, while **preserving older
+backups**. Do not add `--quick`, which omits much of the user state.
+Record the resulting archive path locally and confirm the tool exits
+successfully (no incomplete-backup warning). Share a sanitized
+success/error summary only; never share the archive or secret-bearing
+file names/logs. The ZIP is **not encrypted** and can contain tokens,
+credentials and private user data. Keep it inside the sandbox until
+the separate private-host download and encrypted export steps are
+agreed. Do not import it into the existing sandbox.
+
+## After a successful full official backup (NOT YET EXECUTED)
+
+1. The **full** Hermes ZIP must complete successfully first; retain its
+   exact private sandbox path.
 2. Download the completed zip using NemoClaw's supported
    `nemohermes <sandbox> download <sandbox-path> <private-host-dest>`.
    Copy it only to a private directory owned by the Linux user.
