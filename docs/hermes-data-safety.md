@@ -161,16 +161,90 @@ in chat or GitHub, use `hermes import` on the live sandbox, or
 delete the existing private copies. CRC proves archive transport
 integrity, not full application-level restore capability.
 
+## Official Hermes ZIP: independent host copy verified (2026-11-20)
+
+The owner confirms that the **full 2,824-file** official Hermes backup
+ZIP was downloaded to a private `AIW-Nemo` host directory and the
+independent ZIP CRC/readability test returned
+`[OK] Official Hermes ZIP copied; CRC verified.`
+
+This verifies the host copy, **not** a full application import or
+protection against loss of the WSL distribution.
+
+## Next owner test: encrypt the official ZIP outside WSL
+
+The only remaining data-export operation uses **GnuPG directly**,
+not a custom AIW backup archiver. It encrypts the **one existing
+Hermes ZIP** from inside WSL and writes only encrypted bytes to an
+ordinary Windows directory. Do not place unencrypted ZIP files in
+Windows or a sync folder.
+
+From the `AIW-Nemo` **host shell** (not the sandbox):
+
+```bash
+(
+  set -euo pipefail
+  umask 077
+  ROOT="$HOME/hermes-private-backups"
+  NAME="hermes-backup-2026-11-19-232806.zip"
+  WIN_DIR="/mnt/c/AIW-Encrypted-Backups"
+
+  mapfile -d '' -t files < <(
+    find "$ROOT" -mindepth 2 -maxdepth 2 -type f \
+      -path "$ROOT/hermes-full-*/$NAME" -print0
+  )
+  if (( ${#files[@]} != 1 )); then
+    echo '[STOP] Official Hermes ZIP not uniquely found.'
+    exit 1
+  fi
+  SRC="${files[0]}"
+  [[ -s "$SRC" && ! -L "$SRC" ]] || exit 1
+
+  mkdir -p -- "$WIN_DIR"
+  DEST="$WIN_DIR/$NAME.gpg"
+  PART="$DEST.partial"
+  [[ ! -e "$DEST" && ! -e "$PART" ]] || {
+    echo '[STOP] Destination exists; nothing overwritten.'
+    exit 1
+  }
+  trap 'rm -f -- "$PART"' EXIT
+
+  export GPG_TTY="$(tty)"
+  gpg --symmetric --cipher-algo AES256 --output "$PART" "$SRC"
+  gpg --decrypt --output - "$PART" | cmp -s - "$SRC"
+
+  mv -- "$PART" "$DEST"
+  echo '[OK] Encrypted Hermes backup stored outside WSL; bytes verified.'
+)
+```
+
+GPG will request a **strong passphrase interactively**; keep it in
+a password manager. Do not pass it as a command argument or share it
+in chat. The comparison decrypts only into a pipe and checks the
+complete bytes against the Linux original, without writing plaintext
+to Windows. GPG's local cache may allow the immediate check to
+complete without prompting again; storing the password remains
+essential. If Windows refuses `/mnt/c/AIW-Encrypted-Backups`, stop
+and choose a permitted, non-synchronized Windows directory; do not
+use `sudo` to bypass Windows permissions.
+
+The encrypted copy protects against **WSL distribution loss**, not
+a failed physical disk if Windows and WSL are on that same disk.
+Keep a second protected copy on separate media/storage for that
+risk. This is a Hermes **application-level** backup; NemoClaw's
+sandbox registry, OpenShell provider bindings, and OS installation
+are independently reproducible through supported installation and
+onboarding. A full sandbox image or mandatory restore drill is not
+required for the Linux PR.
+
 ## After a successful full official backup (NOT YET EXECUTED)
 
-1. The official **full** Hermes ZIP has been created. Next validate
-   its downloaded host copy without printing content or private paths.
-2. Download the completed zip using NemoClaw's supported
-   `nemohermes <sandbox> download <sandbox-path> <private-host-dest>`.
-   Copy it only to a private directory owned by the Linux user.
-3. Encrypt the resulting official zip before exporting it from
-   `AIW-Nemo`. Check encrypted-file readability; retain the
-   decryption secret separately in a password manager.
+1. The official **full** Hermes ZIP has been created and its private
+   host copy passed an independent ZIP CRC check.
+2. Encrypt the already downloaded official ZIP using GnuPG directly,
+   then compare decrypted bytes to the private Linux original (above).
+3. Retain the encryption secret separately in a password manager;
+   preserve the original ZIP until the encrypted off-WSL copy is proven.
 4. If Hermes must be reinstalled, create a new NemoClaw sandbox
    through its supported onboarding, configure its provider and policies,
    then restore only the user data that is appropriate for the new
