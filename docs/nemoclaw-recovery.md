@@ -39,6 +39,14 @@ Stopping a managed sandbox is distinct from removing it; do not treat
 a normal stop as a backup. Check project files and upstream persistence
 before host replacement or a fresh installation.
 
+## Before lifecycle testing: record a restorable backup gate
+
+Follow the [Hermes data-safety and restore checklist](hermes-data-safety.md).
+The first step is a read-only inventory of recognized Hermes state paths,
+not a sandbox stop. The upstream `backup-all` operation serves installer
+upgrades and is not a general user-facing snapshot/restore API; do not
+use rebuild/destroy to manufacture an ad hoc backup.
+
 ## Diagnose before recovery
 
 1. Identify the exact intended sandbox with `nemohermes list --json`;
