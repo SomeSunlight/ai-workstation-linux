@@ -7,6 +7,7 @@
 - [x] Exact-head Linux CI green (source/CLI, pinned uv lock, Ansible lint and playbook syntax; run #11 on da4c1cc).
 - [x] Prepare ContextCanon upstream mapping and exact first-adoption instructions in `docs/contextcanon-setup.md` without fabricating generated artifacts.
 - [x] Official ContextCanon 0.10.0 at `5a1f2bf`: `build → source adopt → build → check` passed on isolated GitHub Actions; immutable Development Workflow `0.3.9-draft` compiled into Linux context, generated files committed. CI now checks it read-only.
+- [ ] Fix fresh Ubuntu 26.04 install failure at uv post-install version check: preserve pinned numeric version, tolerate uv build metadata, add offline regression and verify CI. Evidence: owner `Hermes-10.log` on separate `Ubuntu-26.04` (2026-11-19); apt completed, uv 0.11.26 installed, script returned `[XX] Unexpected installed uv version.`
 - [ ] Qualify actual `install` on a **clean disposable** Ubuntu 26.04 host (native Linux preferable); current CI checks only the Ansible graph and operator contract.
 - [x] Owner read-only side-by-side AIW-Nemo test: `./install.sh --version`, `status`, `verify`; reported `[OK] Independent Ubuntu/Podman/NemoClaw verification passed.` (2026-11-18). Existing `testhermes01` was not intentionally changed.
 - [x] Owner exercised Linux Hermes operator menu option 7 with numbered existing-sandbox selection and upstream status action on `AIW-Nemo`; reported `Hermes Agent: running` (2026-11-19). No stop/recover/rebuild was performed.
