@@ -105,10 +105,66 @@ credentials and private user data. Keep it inside the sandbox until
 the separate private-host download and encrypted export steps are
 agreed. Do not import it into the existing sandbox.
 
+## Owner full Hermes backup accepted (2026-11-20)
+
+The owner reports a successful **official full** Hermes backup of
+**2,824 files**. Hermes printed the restore hint
+`hermes import hermes-backup-2026-11-19-232806.zip`.
+No import was performed, and the running `testhermes01` was not
+replaced. The archive name is evidence of an output file, but ZIP
+integrity and off-distro custody have **not** yet been independently
+checked.
+
+## Next owner test: download and read-test the official ZIP
+
+From an `AIW-Nemo` **host shell**, outside the sandbox:
+
+```bash
+(
+  set -euo pipefail
+  umask 077
+  export PATH="$HOME/.local/bin:$PATH"
+  export NEMOCLAW_GATEWAY_RUNTIME=podman
+  ROOT="$HOME/hermes-private-backups"
+  install -d -m 700 "$ROOT"
+  DEST="$(mktemp -d "$ROOT/hermes-full-XXXXXXXX")"
+  NAME="hermes-backup-2026-11-19-232806.zip"
+
+  nemohermes testhermes01 download "/sandbox/$NAME" "$DEST/"
+
+  python3 - "$DEST/$NAME" <<'PY'
+from pathlib import Path
+import sys
+import zipfile
+
+path = Path(sys.argv[1])
+if not path.is_file() or path.stat().st_size == 0:
+    raise SystemExit("[FAIL] Official Hermes ZIP missing or empty")
+with zipfile.ZipFile(path) as archive:
+    if not archive.infolist():
+        raise SystemExit("[FAIL] Official Hermes ZIP is empty")
+    if archive.testzip() is not None:
+        raise SystemExit("[FAIL] Official Hermes ZIP CRC verification failed")
+print("[OK] Official Hermes ZIP copied; CRC verified.")
+PY
+)
+```
+
+The path `/sandbox/<name>` follows the default Hermes backup path
+(`~` inside this sandbox is `/sandbox`). If the download reports
+source missing, **stop and inspect the original archive location inside
+the sandbox**; do not guess or recursively search host secrets.
+The host ZIP is a **sensitive plaintext archive**, potentially with
+credentials. It must remain inside private `AIW-Nemo` storage until
+encrypted for an off-distro destination. Do not list its entries
+in chat or GitHub, use `hermes import` on the live sandbox, or
+delete the existing private copies. CRC proves archive transport
+integrity, not full application-level restore capability.
+
 ## After a successful full official backup (NOT YET EXECUTED)
 
-1. The **full** Hermes ZIP must complete successfully first; retain its
-   exact private sandbox path.
+1. The official **full** Hermes ZIP has been created. Next validate
+   its downloaded host copy without printing content or private paths.
 2. Download the completed zip using NemoClaw's supported
    `nemohermes <sandbox> download <sandbox-path> <private-host-dest>`.
    Copy it only to a private directory owned by the Linux user.
