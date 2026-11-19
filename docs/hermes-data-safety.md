@@ -354,31 +354,22 @@ No encrypted external copy, decryption test, or restore was reported
 as passed in this checkpoint. Do not delete the private original
 host/sandbox snapshot files yet.
 
-## Owner encryption-tool preflight accepted (2026-11-20)
+## Encryption preflight accepted (2026-11-20)
 
-Owner's `AIW-Nemo` host reports **GnuPG 2.4.8**, **GNU tar
-1.35**, and a reachable `/mnt/c` Windows mount. This is an
-availability check only; no off-distro archive has been created yet.
+The owner confirmed GnuPG 2.4.8, GNU tar 1.35 and the Windows `/mnt/c` mount
+from the `AIW-Nemo` Linux host. No encrypted copy has yet been made.
 
-## Next owner test: encrypted three-file off-distro copy
+## Next test: AES-256 encrypted partial backup outside the WSL distro
 
-The following procedure is deliberately **not** a new AIW backup
-manager. It encrypts on Linux as a stream, so the Windows filesystem
-never receives plaintext databases. It requires exactly **one**
-private `sqlite-*` host download directory and one private
-`soul-copy-*/SOUL.md` in `~/hermes-private-backups`; any ambiguity
-fails closed. If there are multiple saved copies, choose the intended
-ones explicitly before running any archive operation.
-
-Choose an **unsynchronized, writable Windows directory** and set
-`WIN_DIR` to its absolute WSL path. The shown default
-`/mnt/c/AIW-Private-Backups` may need to be replaced with a private
-Windows user folder if Windows denies root-folder creation.
-Do **not** use `sudo` to bypass such a refusal. Keep the encryption
-passphrase in a password manager; it must be recoverable if WSL
-disappears. Never pass the passphrase on the command line.
-
-From the `AIW-Nemo` **host**, outside the sandbox:
+From the `AIW-Nemo` **host shell** only. The command finds exactly one
+`sqlite-*` host directory and one `soul-copy-*/SOUL.md`. It **stops**
+if sources are ambiguous; it never guesses a newest backup. All cleartext
+stays on Linux. Only encrypted bytes are written into Windows storage.
+Choose a non-synchronized writable Windows folder. The example path
+`/mnt/c/AIW-Private-Backups` may need changing to a local user folder.
+Do **not** use sudo to defeat Windows folder permissions. GPG requests
+a password interactively: use a strong unique passphrase and save it
+in a password manager, not on the shell command line or in this chat.
 
 ```bash
 (
@@ -386,174 +377,53 @@ From the `AIW-Nemo` **host**, outside the sandbox:
   umask 077
   ROOT="$HOME/hermes-private-backups"
   WIN_DIR="/mnt/c/AIW-Private-Backups"
-
   mapfile -d '' -t dbdirs < <(
     find "$ROOT" -mindepth 1 -maxdepth 1 -type d -name 'sqlite-*' -print0
   )
   mapfile -d '' -t souls < <(
-    find "$ROOT" -mindepth 2 -maxdepth 2 -type f \
-      -path "$ROOT/soul-copy-*/SOUL.md" -print0
+    find "$ROOT" -mindepth 2 -maxdepth 2 -type f -path "$ROOT/soul-copy-*/SOUL.md" -print0
   )
   if (( ${#dbdirs[@]} != 1 || ${#souls[@]} != 1 )); then
-    echo '[STOP] Ambiguous SQLite/SOUL copies; select sources explicitly.'
+    echo '[STOP] Multiple/missing SQLite or SOUL sources; check locally.'
     exit 1
   fi
   DB_DIR="${dbdirs[0]}"
   SOUL_DIR="$(dirname -- "${souls[0]}")"
   for name in state.db kanban.db; do
-    [[ -f "$DB_DIR/$name" && -s "$DB_DIR/$name" &&
-       ! -L "$DB_DIR/$name" ]] || {
-      printf '[STOP] Invalid host snapshot: %s\n' "$name" >&2
-      exit 1
-    }
+    [[ -f "$DB_DIR/$name" && -s "$DB_DIR/$name" && ! -L "$DB_DIR/$name" ]] || exit 1
   done
   [[ -s "$SOUL_DIR/SOUL.md" && ! -L "$SOUL_DIR/SOUL.md" ]] || exit 1
-
   mkdir -p -- "$WIN_DIR"
   ARCHIVE="$WIN_DIR/hermes-partial-$(date +%Y%m%d-%H%M%S).tar.gz.gpg"
   PART="$ARCHIVE.partial"
   [[ ! -e "$ARCHIVE" && ! -e "$PART" ]] || exit 1
   trap 'rm -f -- "$PART"' EXIT
   export GPG_TTY="$(tty)"
-
-  tar -czf - -C "$DB_DIR" state.db kanban.db \
-    -C "$SOUL_DIR" SOUL.md |
+  tar -czf - -C "$DB_DIR" state.db kanban.db -C "$SOUL_DIR" SOUL.md |
     gpg --symmetric --cipher-algo AES256 --output "$PART"
-
   contents="$(gpg --decrypt "$PART" | tar -tzf -)"
-  [[ "$contents" == 
-
-NVIDIA's exact pinned NemoClaw source documents that native
-`/sandbox/.hermes/` contains the main Hermes DB, persona, kanban
-state, profiles, platform sessions and other runtime data. OpenShell
-owns **native home/workspace persistence** across normal stop/start.
-Host-side `~/.nemoclaw/` includes the sandbox registry
-`sandboxes.json`, host configuration and possible credentials.
-Host-only OpenShell provider bindings/secret stores are a **separate
-authority**; a file copy cannot establish their restorable state.
-
-Do **not** run `nemohermes backup-all` expecting a general snapshot
-create/list/restore API: the vendor explicitly labels it an
-installer/upgrade safety operation without a general user-facing
-restore contract. Do **not** use `rebuild` to create a backup: rebuild
-can replace the live sandbox and has its own dependency/credential
-checks. No direct Podman-volume copy or `wsl --export` is an accepted
-substitute for a tested Hermes restoration.
-
-Treat all backup files as **sensitive**, even if the filename looks
-benign (state.db, platform sessions, named profiles). Choose a private
-backup storage location outside source control and later a separately
-protected destination outside the WSL distro. Do not upload raw state
-into GitHub, a public issue, or this chat.
-
-## 3. Targeted independent host download — future approved step
-
-For the main SQLite files `state.db` and `kanban.db`, prefer
-an explicit SQLite **online snapshot** as above (and download only
-those verified snapshots), not a direct copy of a live database file.
-For any future stop-based transfer, first agree on a safe interruption
-window, exit live Hermes sessions, stop **only** `testhermes01` and
-confirm `Stopped` before copying a source database file. If the
-upstream download requires a running sandbox, **stop the procedure**
-rather than automatically starting or rebuilding it. Never equate
-`Stopped` with a complete independent backup.
-
-The vendor's documented download command is
-`nemohermes <sandbox> download <sandbox-path> <host-dest>`. It
-rejects unsafe symlink/special-file sources and verifies the
-published host artifact. Once the stop gate has passed, select
-**only the files observed to exist**:
-
-```bash
-umask 077
-SANDBOX=testhermes01
-BACKUP_DIR="$HOME/hermes-private-backups/$(date +%Y%m%d-%H%M%S)"
-mkdir -m 700 -p "$BACKUP_DIR"
-# Examples — run ONLY for validated existing files, after approved stop:
-nemohermes "$SANDBOX" download /sandbox/.hermes/SOUL.md "$BACKUP_DIR/"
-# For databases, download ONLY the completed private online snapshot,
-# using its exact SNAPSHOT_DIR from above (not /sandbox/.hermes/state.db).
-# Other optional content to review one by one: kanban.db, kanban/,
-# profiles/, platforms/; these can include highly sensitive state.
-```
-
-Do not copy `/sandbox/.hermes/.env` or
-`/sandbox/.hermes/config.yaml` **between sandboxes**: NVIDIA says
-the receiving sandbox must obtain fresh managed credentials/routes.
-Do not blindly archive the whole `.hermes` tree, because raw files
-may contain agent/device secrets. If the authoritative state spans
-additional paths under `/sandbox`, list them and design a separate
-reviewed transfer: this targeted copy is **not a complete image**.
-
-Check saved files exist and are nonempty; calculate SHA-256 checksums
-locally without printing contents, record which optional resources
-were excluded, and store the backup on encrypted media **outside the
-WSL distro**. Verify the copied bytes again at the destination. A
-hash comparison establishes transfer integrity, *not* functional
-restorability. Take host registry/config backup separately under the
-appropriate local credential-handling policy; do not paste or
-check it into Git.
-
-## 4. Restore proof and lifecycle gates — explicitly not yet passed
-
-1. Verify local backup completeness, permissions, hashes, and
-   an independently stored recoverable copy.
-2. Plan a **separate new sandbox identity** for a manual restore test.
-   Do not upload saved `config.yaml`/`.env` or overwrite live
-   `testhermes01`. Fresh OpenShell provider bindings are needed.
-3. Restore selected *non-generated* files using upstream
-   `nemohermes <new-name> upload`, after review of each destination
-   and applicable platform-/provider-state semantics. Prove the
-   expected Hermes behavior, persistence across a stop/start, and
-   absence of configuration/credential violations.
-4. Only then mark the backup **restorable**. A targeted transfer cannot
-   guarantee complete sandbox replacement without additional review
-   of the complete native home and host-only authorities.
-5. After owner acceptance, test normal existing-sandbox
-   `status → stop → status → start → launch`, then WSL/Windows
-   restart, then explicitly scoped crash recovery.
-6. The Linux PR and Windows production handoff remain separate review
-   and merge decisions; no implicit change to the desktop penguin.
-
-## Upstream sources (pinned to the installed NemoClaw checkout)
-
-- [Hermes state and storage](https://github.com/NVIDIA/NemoClaw/blob/82e1ad7474ec7175c5b860b2bfa9d7940bc6e75f/docs/manage-sandboxes/workspace-files.mdx)
-- [Manual Hermes state transfer](https://github.com/NVIDIA/NemoClaw/blob/82e1ad7474ec7175c5b860b2bfa9d7940bc6e75f/docs/manage-sandboxes/transfer-state-manually.mdx)
-- [Complete home persistence and backup-all limits](https://github.com/NVIDIA/NemoClaw/blob/82e1ad7474ec7175c5b860b2bfa9d7940bc6e75f/docs/manage-sandboxes/backup-restore.mdx)
-- [Host registry and credential-sensitive files](https://github.com/NVIDIA/NemoClaw/blob/82e1ad7474ec7175c5b860b2bfa9d7940bc6e75f/docs/reference/host-files-and-state.mdx)
-state.db\nkanban.db\nSOUL.md' ]] || {
+  expected="$(printf 'state.db\nkanban.db\nSOUL.md')"
+  [[ "$contents" == "$expected" ]] || {
     echo '[FAIL] Encrypted archive contents mismatch.'
     exit 1
   }
   mv -- "$PART" "$ARCHIVE"
-  echo '[OK] Encrypted Windows-side archive created and decrypted in stream.'
+  echo '[OK] Encrypted off-distro archive created and read back.'
 )
 ```
 
-GnuPG prompts interactively for an encryption password; do not
-paste it into chat, source files or shell history. The verification
-step decrypts to a **pipe**, not a plaintext Windows file, and
-checks the three expected archive entries. GnuPG may cache the
-passphrase, so the immediate stream check does **not** independently
-prove that the operator has retained the password. Validate a
-subsequent fresh restore separately before calling the backup
-restorable. The `.partial` file contains ciphertext only and is
-removed on error.
+The verification decrypts through a **pipe**, not into a Windows file.
+GPG may cache the passphrase, so this first check does not prove that
+you can remember it later. Retain the existing originals until a
+separate restore test succeeds. This archive covers only `SOUL.md`,
+`state.db`, and `kanban.db`: **profiles, platforms, kanban attachments,
+host NemoClaw registry and OpenShell credentials are not included**.
+An archive on the same physical Windows disk protects against WSL distro
+loss, not against disk failure. A genuinely independent backup requires
+a separately protected destination.
 
-Share **only** the `[OK]` output, or a sanitized error and whether
-GPG prompted. Do not publish real archive paths, DB hashes, user
-contents, secrets, or the passphrase. Keep the existing WSL host and
-sandbox source snapshots until independent recovery is demonstrated.
-This encrypted archive covers exactly three files; it excludes
-`profiles/`, `platforms/`, `kanban/`, host registry and OpenShell
-credentials, and thus is **not a complete Hermes migration backup**.
-A file on the same Windows physical disk only survives loss of the
-WSL distro, not failure of the whole disk.
-
-Vendor references:
-- [GnuPG symmetric encryption](https://www.gnupg.org/documentation/manuals/gnupg/Operational-GPG-Commands.html)
-- [GNU tar per-file directory selection](https://www.gnu.org/software/tar/manual/html_node/Position_002dSensitive-Options.html)
-
+References: [GnuPG encryption](https://www.gnupg.org/documentation/manuals/gnupg/Operational-GPG-Commands.html)
+and [GNU tar -C](https://www.gnu.org/software/tar/manual/html_node/Position_002dSensitive-Options.html).
 ## 2. Scope the backup before any lifecycle change
 
 NVIDIA's exact pinned NemoClaw source documents that native
