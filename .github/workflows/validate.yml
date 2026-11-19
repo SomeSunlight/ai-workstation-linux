@@ -13,6 +13,7 @@ jobs:
         shell: bash
         run: |
           bash tests/smoke/linux-contract.sh
+          bash tests/smoke/uv-install-contract.sh
           bash tests/smoke/nemoclaw-operator.sh
       - name: Verify no Windows and legacy Docker runtime imported
         shell: bash
