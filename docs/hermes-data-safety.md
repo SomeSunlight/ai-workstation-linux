@@ -154,6 +154,78 @@ and `PRAGMA quick_check` on the copy, **never a raw live `.db`
 download**. Keep off-distro encrypted copy and separate restore
 validation as later gates.
 
+## Owner SQLite-capability acceptance (2026-11-19)
+
+The owner verified **SQLite 3.46.1**, a present
+`sqlite3.Connection.backup` API, and **nonempty**
+`/sandbox/.hermes/state.db` and `kanban.db` in the existing live
+sandbox. The capability test was read-only. No database snapshots
+or restoration have yet been attempted.
+
+## Next owner test: protected, online per-database snapshots
+
+**This step writes new private snapshot files inside the sandbox.**
+It does **not** write the originals, stop Hermes, touch host/Windows
+credentials, or replace the sandbox. In a host shell of `AIW-Nemo`,
+connect to `testhermes01`; inside its shell run:
+
+```bash
+python3 - <<'PY'
+import os
+import sqlite3
+import tempfile
+from pathlib import Path
+
+os.umask(0o077)
+base = Path("/sandbox/.hermes")
+stage = Path(tempfile.mkdtemp(prefix=".aiw-hermes-sqlite-", dir="/sandbox"))
+print(f"SNAPSHOT_DIR={stage}")
+
+for name in ("state.db", "kanban.db"):
+    source = base / name
+    if not source.is_file() or source.stat().st_size == 0:
+        raise SystemExit(f"[FAIL] {name}: missing or empty")
+
+    original = sqlite3.connect(source.as_uri() + "?mode=ro", uri=True, timeout=30)
+    copy = sqlite3.connect(stage / name, timeout=30)
+    try:
+        original.backup(copy, pages=256, sleep=0.25)
+    finally:
+        copy.close()
+        original.close()
+
+    snapshot = stage / name
+    verify = sqlite3.connect(snapshot.as_uri() + "?mode=ro", uri=True)
+    try:
+        result = verify.execute("PRAGMA quick_check").fetchone()
+    finally:
+        verify.close()
+    if result != ("ok",) or snapshot.stat().st_size == 0:
+        raise SystemExit(f"[FAIL] {name}: SQLite snapshot check failed")
+    print(f"[OK] {name}: private snapshot; quick_check=ok")
+PY
+```
+
+Then leave the sandbox with `exit`. If the command errors, do not
+copy or rename the incomplete stage: report only sanitized failure
+status, without database content or a private path. The timestamp-
+independent, random `SNAPSHOT_DIR` value is needed for the **next**
+explicit host download test; keep it locally. The new staging
+directory has restrictive permissions; no shell `umask` assumptions.
+
+This uses Python's documented SQLite online backup API, which
+works during concurrent access, instead of downloading an actively
+written `.db` file. Each database is backed up independently; **not
+a cross-database atomic snapshot**. `PRAGMA quick_check` tests
+individual SQLite file integrity but does not prove Hermes application
+behavior, transaction correlation, complete native-home state, or
+actual restore. These files may contain sensitive records and must
+never be attached to issues, chat, or the repository. They remain
+inside the same sandbox until separately downloaded and protected
+outside the WSL distro.
+
+Reference: [Python sqlite3.Connection.backup](https://docs.python.org/3/library/sqlite3.html#sqlite3.Connection.backup).
+
 ## 2. Scope the backup before any lifecycle change
 
 NVIDIA's exact pinned NemoClaw source documents that native
@@ -181,14 +253,15 @@ into GitHub, a public issue, or this chat.
 
 ## 3. Targeted independent host download — future approved step
 
-Only after the inventory is reviewed and a safe interruption window
-is agreed, exit active Hermes sessions and **stop only**
-`testhermes01` via the existing menu or
-`nemohermes testhermes01 stop`. Check status reports `Stopped`;
-other states are not permission to continue. For SQLite state.db
-(or kanban.db), take the file copy when no Hermes writer is active.
-If NemoClaw cannot download from a stopped sandbox, **stop** and
-re-evaluate; do not start/rebuild/destroy automatically.
+For the main SQLite files `state.db` and `kanban.db`, prefer
+an explicit SQLite **online snapshot** as above (and download only
+those verified snapshots), not a direct copy of a live database file.
+For any future stop-based transfer, first agree on a safe interruption
+window, exit live Hermes sessions, stop **only** `testhermes01` and
+confirm `Stopped` before copying a source database file. If the
+upstream download requires a running sandbox, **stop the procedure**
+rather than automatically starting or rebuilding it. Never equate
+`Stopped` with a complete independent backup.
 
 The vendor's documented download command is
 `nemohermes <sandbox> download <sandbox-path> <host-dest>`. It
@@ -203,7 +276,8 @@ BACKUP_DIR="$HOME/hermes-private-backups/$(date +%Y%m%d-%H%M%S)"
 mkdir -m 700 -p "$BACKUP_DIR"
 # Examples — run ONLY for validated existing files, after approved stop:
 nemohermes "$SANDBOX" download /sandbox/.hermes/SOUL.md "$BACKUP_DIR/"
-nemohermes "$SANDBOX" download /sandbox/.hermes/state.db "$BACKUP_DIR/"
+# For databases, download ONLY the completed private online snapshot,
+# using its exact SNAPSHOT_DIR from above (not /sandbox/.hermes/state.db).
 # Other optional content to review one by one: kanban.db, kanban/,
 # profiles/, platforms/; these can include highly sensitive state.
 ```
