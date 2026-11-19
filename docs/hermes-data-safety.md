@@ -293,6 +293,67 @@ still disappear if that distro is removed/damaged. Next: protected
 off-distro storage, then a separate restoration proof. No raw
 `/sandbox/.hermes/state.db` or `kanban.db` download is intended.
 
+## Owner private host download accepted (2026-11-19)
+
+The owner reports the two finished SQLite snapshot files were
+successfully transferred from sandbox staging to a private
+`AIW-Nemo` **host** directory using the official `nemohermes
+download` path. The host-side verification command completed
+after correcting an initially confused `SNAPSHOT_DIR` (sandbox
+source) versus `BACKUP_DIR` (Linux host destination) substitution.
+
+Neither temporary path is a provider route or persistent state
+registry. Both directories are **inside the same WSL distribution**,
+so neither protects against losing `AIW-Nemo`. The host download
+success is not a complete restore guarantee.
+
+## Next owner check: prerequisites for encrypted off-distro storage
+
+Run from `AIW-Nemo` host shell, not inside Hermes:
+
+```bash
+printf 'Encryption tool: '
+if command -v gpg >/dev/null 2>&1; then
+  gpg --version | head -n 1
+else
+  echo 'GPG unavailable'
+fi
+printf 'Archive tool: '
+if command -v tar >/dev/null 2>&1; then
+  tar --version | head -n 1
+else
+  echo 'tar unavailable'
+fi
+if [ -d /mnt/c ]; then
+  echo '[OK] Windows C: mount is visible from WSL'
+else
+  echo '[INFO] No /mnt/c mount: choose an accessible external destination'
+fi
+```
+
+This probe is **read-only**. Do not install packages or copy
+sensitive data just to obtain a green result. If GPG or a usable
+destination is missing, choose a supported encryption option first.
+
+For the eventual encrypted archive, include the **verified
+host-side** SQLite snapshots and the earlier host `SOUL.md` copy,
+and separately review the `profiles/`, `platforms/`, `kanban/`
+state plus registry and external provider credential bindings.
+Encrypt **before** placing copies on a Windows drive or a shared
+folder; avoid a OneDrive-synchronized directory unless deliberate
+encrypted-cloud backup is intended. Pick a private Windows/external
+path under an appropriate secure retention policy and store the
+decryption passphrase independently in a password manager.
+A second directory under the same WSL distro is **not** off-distro.
+An encrypted file on the same Windows physical disk protects
+against WSL distro deletion, **not** full disk failure. A separate
+encrypted medium or backed-up location is needed for broader
+disaster recovery.
+
+No encrypted external copy, decryption test, or restore was reported
+as passed in this checkpoint. Do not delete the private original
+host/sandbox snapshot files yet.
+
 ## 2. Scope the backup before any lifecycle change
 
 NVIDIA's exact pinned NemoClaw source documents that native
