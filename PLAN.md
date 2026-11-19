@@ -15,7 +15,8 @@
 - [x] Review pinned NemoClaw native Hermes-state persistence/host registry and upstream manual download semantics; add `docs/hermes-data-safety.md` with non-mutating six-path inventory and explicit sensitive backup/restore gates (2026-11-19). No user data copied or lifecycle command executed.
 - [x] Owner read-only on-sandbox inventory (2026-11-19): `SOUL.md`, `state.db`, `kanban.db` are files; `profiles/`, `platforms/`, `kanban/` directories; `testhermes01` connect succeeded after external Speedy services were restarted. No file contents copied or viewed.
 - [x] Diagnose real Windows Update reboot of independent Speedy inference host: services absent → HTTPS HTTP 000, restarted → HTTP 401; NemoClaw in-sandbox route failed closed before host recovery, `connect` succeeded after. Recorded in `docs/nemoclaw-recovery.md` (HTTP 401 reachability ≠ authenticated inference success).
-- [ ] Owner tests one private, single-file `SOUL.md` host download via supported `nemohermes testhermes01 download` without touching databases or stopping Hermes; this is not a restorable backup.
+- [x] Owner ran pinned NemoClaw download of existing `testhermes01` `SOUL.md` and verified nonempty private file on AIW-Nemo host (2026-11-19). Sandbox was not stopped. This is **not** an off-distro copy or tested restore.
+- [ ] Read-only capability check inside existing `testhermes01`: Python SQLite online-backup support and nonempty `state.db`, `kanban.db`; no SQL records read and no database copy yet.
 - [ ] Document a verified restorable backup and perform owner-approved migration or optional clean Hermes onboarding.
 - [x] Windows Draft PR #85 contains a candidate SHA pin and *opt-in read-only* version/status/verify adapter; offline Windows CI green. The production shortcut/installer cutover is still pending.
 - [ ] After owner approval, update Windows candidate pin to the **merged** Linux commit and switch the production bootstrap/shortcut via a separate tested cutover.
