@@ -140,7 +140,11 @@ install_uv() {
         rm -f -- "$installer"; fail 'uv installer failed.'
     fi
     rm -f -- "$installer"
-    [[ "$("$UV" --version)" == "uv $expected" ]] || fail 'Unexpected installed uv version.'
+    # uv --version can include a build hash/date after the numeric version.
+    # Use the same numeric parsing as the pre-install pin check.
+    current="$("$UV" --version 2>/dev/null | awk '$1=="uv"{print $2; exit}' || true)"
+    [[ "$current" == "$expected" ]] ||
+        fail "Unexpected installed uv version (expected $expected, found ${current:-unreadable})."
 }
 
 install_linux() {
