@@ -86,16 +86,28 @@ the image version/pin and upstream-managed upgrade compatibility first.
 3. Encrypt the resulting official zip before exporting it from
    `AIW-Nemo`. Check encrypted-file readability; retain the
    decryption secret separately in a password manager.
-4. In a separately approved test sandbox, assess import semantics
-   against **NemoClaw-managed** route and gateway ownership and test
-   the intended user-state restoration. Until then a zip existing on
-   Windows is **not proof of application-level restorability**.
-5. Only after those checks can we qualify normal sandbox stop/start,
-   WSL restart and deliberate Windows/Dispatcher recovery.
+4. If Hermes must be reinstalled, create a new NemoClaw sandbox
+   through its supported onboarding, configure its provider and policies,
+   then restore only the user data that is appropriate for the new
+   environment. Do not blindly overwrite NemoClaw-managed configuration
+   or credentials from an older Hermes archive.
+5. A full sandbox restore drill is **optional**, not a Linux PR
+   acceptance gate. Qualify normal sandbox stop/start and Windows/WSL
+   recovery separately, without requiring the whole installation to
+   be reconstructed automatically.
 
 **Do not invoke `hermes import` or `nemohermes rebuild` as a
 backup verification on the working sandbox.** No new backup
 scheduler/service/registry is justified in AIW.
+
+## Explicit recovery priority
+
+The owner accepts reinstalling Hermes from scratch when needed. The
+objective is therefore **recoverability of user-owned data and work**,
+not recreating an identical Podman/NemoClaw/OpenShell runtime from a
+backup. Maintain a simple documented reinstallation/onboarding route;
+avoid a parallel AIW snapshot engine, another registry or a mandatory
+end-to-end sandbox restore certification.
 
 ## Previous operator field checks (superseded as backup design)
 
