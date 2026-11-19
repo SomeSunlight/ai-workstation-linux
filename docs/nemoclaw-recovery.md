@@ -47,6 +47,31 @@ not a sandbox stop. The upstream `backup-all` operation serves installer
 upgrades and is not a general user-facing snapshot/restore API; do not
 use rebuild/destroy to manufacture an ad hoc backup.
 
+## External inference host reboot: restore the upstream dependency first
+
+**Observed on 2026-11-19** (owner's existing `AIW-Nemo` /
+`testhermes01`): after an unexpected Windows Update reboot of the
+separate Speedy inference host, its local Dispatcher/Caddy services
+were not running. NemoClaw's `connect` refused with
+`curl_exit=56`, an untrusted `inference.local` probe, and
+`compatible-endpoint/sparringpartner` route health not verified.
+The separate HTTPS `/v1/models` unauthenticated connectivity probe
+returned `HTTP 000` (connection refused). After the operator restarted
+the **existing Windows inference services**, the same request returned
+`HTTP 401` (reachable, auth required), and `nemohermes
+testhermes01 connect` immediately worked. No NemoClaw recover,
+rebuild, onboard or route change was necessary.
+
+**Triage order:** check the independent Windows inference-service
+status first; from the Linux host, a bounded HTTPS **unauthenticated**
+probe returning 401 shows reachable authenticated service, but not
+successful model completion. If it reports 000, troubleshoot that
+external service and HTTPS path before touching OpenShell. Only after
+restoring the external dependency retry ordinary `connect`; if
+still unhealthy, collect a redacted `doctor --json` report **without
+`--fix`** before choosing any mutation. This illustrates a
+cross-machine dependency, not an automatic Linux recovery failure.
+
 ## Diagnose before recovery
 
 1. Identify the exact intended sandbox with `nemohermes list --json`;
