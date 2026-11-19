@@ -50,10 +50,13 @@ way to create/configure Hermes and its OpenShell policies. It never
 destroys or rebuilds an existing sandbox. The systemd user Podman socket
 must pass the rootless/cgroups-v2/Netavark checks.
 
-The Linux install path is not yet independently qualified on a fresh
-Ubuntu machine. Do **not** run it on the existing working AIW-Nemo
-distribution merely because this repository was cloned: first perform
-the read-only migration checks below and review the planned cutover.
+The independent installer **has passed** a fresh WSL Ubuntu 26.04
+host trial on 2026-11-19: Ansible completed with zero failures,
+NemoClaw v0.0.144 was installed, and a subsequent independent
+`./install.sh verify` passed. Native bare-metal Ubuntu and a full
+new Hermes sandbox onboarding have **not** been tested. Do **not**
+run it on the existing working `AIW-Nemo` merely because this
+repository was cloned: follow the reviewed cutover plan instead.
 
 ## Security and persistence
 
@@ -71,3 +74,11 @@ verifying that the specific running sandbox can safely be interrupted.
 For unavailable gateways/forwards use upstream `recover` after
 diagnosis. A forced crash test follows successful routine restarts, not
 the other way round.
+
+## Owner acceptance: live Hermes data safety
+
+Before any stop/start, migration or experimental recovery of the existing
+`testhermes01` sandbox, follow the [Hermes inventory and gated
+backup/restore checklist](hermes-data-safety.md). The first test reads
+only the existence of six known Hermes state paths. Avoid transmitting
+configuration, environment files, session logs or sensitive inventories.
