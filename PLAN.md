@@ -22,8 +22,8 @@
 - [x] Owner reports `gpg (GnuPG) 2.4.8`, `tar (GNU tar) 1.35`, and accessible `/mnt/c` from `AIW-Nemo`; encrypted off-distro prerequisites verified (2026-11-20).
 - [x] Architecture corrected following owner review (2026-11-20): **NousResearch Hermes already provides `hermes backup` / `hermes import`** for full agent state; our SQLite snapshots were technically valid but should not become a parallel AIW backup system. Superseded custom GPG/tar three-file backup instructions and replaced the runbook with official Hermes workflow and explicit NemoClaw host-authority caveats.
 - [ ] Owner next runs only `hermes --version` and `hermes backup --help` **inside existing** `testhermes01` to verify whether the image actually supports this official functionality before taking a full backup. No import, rebuild, re-onboarding, or independent package upgrade.
-- [ ] After support confirmed, export full official Hermes backup privately, encrypt/export it off-distro, and separately prove safe restore semantics against NemoClaw-managed provider bindings. No application recovery is yet claimed.
-- [ ] Document a verified restorable backup and perform owner-approved migration or optional clean Hermes onboarding.
+- [ ] If supported, export one **official Hermes backup** and protect it outside WSL, preserving user-created data and memories; do not implement a parallel AIW backup system. A full sandbox/host restore drill is optional, **not a prerequisite** for Linux PR #1.
+- [ ] Operator-approved normal stop/start and Windows/WSL recovery tests for the existing sandbox, with clean reinstall and fresh provider onboarding accepted as fallback. Never silently overwrite or destroy `testhermes01`.
 - [x] Windows Draft PR #85 contains a candidate SHA pin and *opt-in read-only* version/status/verify adapter; offline Windows CI green. The production shortcut/installer cutover is still pending.
 - [ ] After owner approval, update Windows candidate pin to the **merged** Linux commit and switch the production bootstrap/shortcut via a separate tested cutover.
 - [ ] Owner-approved merges and retirement of the original monolithic Linux code.
