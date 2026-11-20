@@ -113,6 +113,7 @@ for input in $'4\n\nq\n' $'4\n0\nq\n' $'4\n99\nq\n' \
     diff -u "$tmp/expected" "$trace"
 done
 printf '7\n1\n4\nq\n' | FAKE_NEMO_FAIL=yes invoke menu >"$tmp/menu.log" 2>&1
+printf 'testhermes01 status --json\n' >> "$tmp/expected"
 grep -q 'Current NemoClaw sandbox status' "$tmp/menu.log"
 grep -q 'Hermes action failed' "$tmp/menu.log"
 diff -u "$tmp/expected" "$trace"
