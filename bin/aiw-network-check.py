@@ -178,6 +178,57 @@ def podman_container(name: str) -> tuple[dict, str]:
     }, str(record.get("ImageName") or "")
 
 
+def recorded_openshell_policy_addresses(name: str) -> dict:
+    """Read only the configured, explicitly pinned policy host/IP pairs.
+
+    The official OpenShell JSON can contain much more policy and credential
+    metadata; never persist/print that raw response in an IP snapshot.
+    """
+    data = object_json("openshell", "sandbox", "get", name, "-o", "json")
+    if not isinstance(data, dict):
+        return {"status": "unavailable", "pinned_hosts": []}
+    policy = data.get("policy")
+    if not isinstance(policy, dict):
+        return {"status": "unavailable", "pinned_hosts": []}
+    groups = policy.get("network_policies")
+    result = []
+    if isinstance(groups, dict):
+        for key, item in sorted(groups.items()):
+            if not isinstance(item, dict):
+                continue
+            endpoints = item.get("endpoints")
+            if not isinstance(endpoints, list):
+                continue
+            for endpoint in endpoints:
+                if not isinstance(endpoint, dict):
+                    continue
+                allowed = endpoint.get("allowed_ips")
+                host = endpoint.get("host")
+                if not isinstance(allowed, list) or not isinstance(host, str):
+                    continue
+                if not re.fullmatch(r"[A-Za-z0-9.*_-]{1,253}", host):
+                    continue
+                addresses = []
+                for raw in allowed:
+                    if isinstance(raw, str) and len(raw) < 64:
+                        try:
+                            addresses.append(str(ipaddress.ip_network(raw, strict=False)))
+                        except ValueError:
+                            pass
+                if addresses:
+                    result.append({
+                        "host": host,
+                        "allowed_ips": sorted(set(addresses)),
+                        "policy": str(key)[:64],
+                    })
+    return {
+        "status": "configured",
+        "policy_revision": data.get("revision")
+            if isinstance(data.get("revision"), int) else None,
+        "pinned_hosts": result[:32],
+    }
+
+
 def gateway_listener(port: int) -> str:
     ok, out = run("ss", "-ltn")
     if not ok:
@@ -250,6 +301,7 @@ def collect(names: list[str], inventory: dict, network: str, port: int, probe: b
             "model": entry.get("model", ""),
             "provider_endpoint_host": host,
             "provider_resolved_ips": ipv4_list(host),
+            "openshell_policy": recorded_openshell_policy_addresses(name),
             "podman": container,
         }
         if probe:
@@ -282,6 +334,10 @@ def render(snapshot: dict) -> None:
                   "DNS:", ",".join(sb["provider_resolved_ips"]) or "unresolved")
         for host, addr in p.get("host_aliases", {}).items():
             print(f"  Stored host alias: {host} => {addr}")
+        policy = sb.get("openshell_policy", {})
+        for pair in policy.get("pinned_hosts", []):
+            print(f"  OpenShell policy pin: {pair['host']} => "
+                  f"{', '.join(pair['allowed_ips'])}")
         if "disposable_probe" in sb:
             z = sb["disposable_probe"]
             print("  Disposable probe:", z["status"])
