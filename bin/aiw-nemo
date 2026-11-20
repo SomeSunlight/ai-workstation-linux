@@ -198,21 +198,67 @@ hermes_action() {
     esac
 }
 
+# Display a compact *filtered* view from the official status JSON.
+# The full vendor status can include hundreds of policy lines and private data;
+# it remains available explicitly through the chosen status action.
+compact_sandbox_status() {
+    local sandbox="$1" payload summary
+    if ! payload="$(nemohermes "$sandbox" status --json 2>/dev/null)"; then
+        # NemoClaw intentionally exits nonzero on unhealthy sandboxes; it may
+        # still have produced a complete JSON report. Parse it regardless.
+        :
+    fi
+    if [[ -z "$payload" ]]; then
+        printf '[WARN] Upstream JSON status unavailable. Choose full status for details.\n' >&2
+        return 1
+    fi
+    if ! summary="$(printf '%s\n' "$payload" | python3 -c '
+import json, sys
+try:
+    d = json.load(sys.stdin)
+    if not isinstance(d, dict) or d.get("schemaVersion") != 1:
+        raise ValueError("invalid status schema")
+    def show(label, key):
+        value = d.get(key)
+        if value is not None and isinstance(value, (str, int, float, bool)):
+            print(f"  {label}: {str(value)[:96]}")
+    show("Sandbox", "name")
+    show("Phase", "phase")
+    show("Gateway", "gatewayState")
+    show("Provider", "provider")
+    show("Model", "model")
+    if d.get("failureLayer"):
+        print("  Readiness: degraded; see full vendor status")
+    health = d.get("inferenceHealth")
+    if isinstance(health, dict):
+        for key in ("status", "kind", "state"):
+            if isinstance(health.get(key), str):
+                print(f"  Inference: {health[key][:60]}")
+                break
+except (ValueError, TypeError, json.JSONDecodeError) as exc:
+    print("Cannot summarize official NemoClaw status: " + str(exc), file=sys.stderr)
+    sys.exit(1)
+')"; then
+        printf '[WARN] Upstream JSON summary could not be parsed. Use full status.\n' >&2
+        return 1
+    fi
+    printf '%s\n' "$summary"
+}
+
 hermes_menu() {
     local choice action
     select_registered_sandbox || return 0
     printf '\nSelected sandbox: %s\n' "$SELECTED_SANDBOX"
-    printf 'Current NemoClaw sandbox status (selected sandbox only):\n'
-    if ! nemohermes "$SELECTED_SANDBOX" status; then
-        printf '[WARN] Status could not be verified. No repair has been attempted.\n' >&2
-    fi
+    printf 'Current NemoClaw sandbox status (selected sandbox only; compact):\n'
+    compact_sandbox_status "$SELECTED_SANDBOX" ||
+        printf '[WARN] No verified compact status; no repair attempted.\n' >&2
     printf '\n=== Saved network mappings (read-only; no probe container) ===\n'
     network_check --sandbox "$SELECTED_SANDBOX" ||
         printf '[WARN] Network inventory unavailable; no repair attempted.\n' >&2
     printf ' 1) Launch interactive Hermes (new terminal attachment)\n'
     printf ' 2) Start a stopped sandbox\n'
     printf ' 3) Stop this sandbox and keep its data\n'
-    printf ' 4) Show sandbox status\n'
+    printf ' 4) Show full vendor sandbox status (may include private details)\n'
     printf ' 5) Recover gateway/port forwards (only when needed)\n'
     printf ' 0) Cancel\n'
     read -r -p 'Action (Enter cancels): ' choice || return 0
