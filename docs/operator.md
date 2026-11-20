@@ -26,8 +26,10 @@ private snapshot commands, read the
 
 The operator menu delegates to **upstream** `nemohermes` commands.
 Menu item 7 selects from the official registry **by number**; it displays
-the registered provider/model and any **known** live phase, and fetches the
-selected sandbox's authoritative status before actions. Unknown phases are
+the registered provider/model and any **known** live phase, and fetches a
+compact, filtered summary from the selected sandbox's **official upstream
+`status --json`**, without dumping the entire security policy. Full vendor
+status (which can contain private data) remains an explicit menu action. Unknown phases are
 labelled **not checked**, never guessed. Menu item 4 also selects an existing
 sandbox by number, opening a separate shell rather than another session in
 the same terminal. Enter/0 cancels **without exiting Linux or triggering
