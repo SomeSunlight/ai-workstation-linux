@@ -18,6 +18,12 @@ if [[ "${1:-}" == list ]]; then
   fi
   exit 0
 fi
+if [[ "${2:-}" == status && "${3:-}" == --json ]]; then
+  printf '%s\n' "$*" >> "$FAKE_NEMO_TRACE"
+  printf '%s\n' '{"schemaVersion":1,"name":"testhermes01","phase":"Error","gatewayState":"present","provider":"compatible-endpoint","model":"sparringpartner","failureLayer":"sandbox"}'
+  [[ "${FAKE_NEMO_FAIL:-}" != yes ]] || exit 93
+  exit 0
+fi
 if [[ "${FAKE_NEMO_FAIL:-}" == yes ]]; then exit 93; fi
 printf '%s\n' "$*" >> "$FAKE_NEMO_TRACE"
 MOCK
@@ -82,11 +88,13 @@ grep -q '2) other-hermes' "$tmp/menu.log"
 grep -q 'phase: Ready' "$tmp/menu.log"
 grep -q 'phase: Stopped' "$tmp/menu.log"
 grep -q 'Current NemoClaw sandbox status' "$tmp/menu.log"
-printf 'testhermes01 status\nlaunch testhermes01\n' >> "$tmp/expected"
+grep -q 'Phase: Error' "$tmp/menu.log"
+if grep -q 'network_policies:' "$tmp/menu.log"; then echo 'Menu accidentally dumped full vendor policy' >&2; exit 1; fi
+printf 'testhermes01 status --json\nlaunch testhermes01\n' >> "$tmp/expected"
 diff -u "$tmp/expected" "$trace"
 
 printf '7\n2\n3\nq\n' | invoke menu >"$tmp/menu.log"
-printf 'other-hermes status\nother-hermes stop\n' >> "$tmp/expected"
+printf 'other-hermes status --json\nother-hermes stop\n' >> "$tmp/expected"
 diff -u "$tmp/expected" "$trace"
 
 # The shell-connect option also uses the registry selector.
@@ -100,12 +108,12 @@ for input in $'4\n\nq\n' $'4\n0\nq\n' $'4\n99\nq\n' \
              $'7\n\nq\n' $'7\n1\n\nq\n' $'7\n1\n0\nq\n' $'7\n1\n99\nq\n'; do
     printf '%s' "$input" | invoke menu >"$tmp/menu.log" 2>&1
     if [[ "$input" == $'7\n1\n'* ]]; then
-        printf 'testhermes01 status\n' >> "$tmp/expected"
+        printf 'testhermes01 status --json\n' >> "$tmp/expected"
     fi
     diff -u "$tmp/expected" "$trace"
 done
 printf '7\n1\n4\nq\n' | FAKE_NEMO_FAIL=yes invoke menu >"$tmp/menu.log" 2>&1
-grep -q 'Status could not be verified' "$tmp/menu.log"
+grep -q 'Current NemoClaw sandbox status' "$tmp/menu.log"
 grep -q 'Hermes action failed' "$tmp/menu.log"
 diff -u "$tmp/expected" "$trace"
 printf '7\nq\n' | FAKE_NEMO_BAD_LIST=yes invoke menu >"$tmp/menu.log" 2>&1
