@@ -51,6 +51,14 @@ check_runtime() {
     fi
 }
 
+network_check() {
+    command -v python3 >/dev/null 2>&1 || {
+        printf '[WARN] Python 3 missing; network inventory unavailable.\n' >&2
+        return 1
+    }
+    python3 "$ROOT/bin/aiw-network-check.py" "$@"
+}
+
 status() {
     printf '\nNemoClaw / Hermes (separate Ubuntu environment)\n'
     show_version
@@ -68,6 +76,8 @@ status() {
     else
         printf 'NemoClaw Hermes CLI not yet installed. Choose option 2 after installation.\n'
     fi
+    printf '\n=== Network addresses (snapshot only; no container started) ===\n'
+    network_check || printf '[WARN] Network snapshot unavailable; no repair attempted.\n' >&2
     printf 'Guide: %s/docs/operator.md\n' "$ROOT"
 }
 onboard() {
@@ -196,6 +206,9 @@ hermes_menu() {
     if ! nemohermes "$SELECTED_SANDBOX" status; then
         printf '[WARN] Status could not be verified. No repair has been attempted.\n' >&2
     fi
+    printf '\n=== Saved network mappings (read-only; no probe container) ===\n'
+    network_check --sandbox "$SELECTED_SANDBOX" ||
+        printf '[WARN] Network inventory unavailable; no repair attempted.\n' >&2
     printf ' 1) Launch interactive Hermes (new terminal attachment)\n'
     printf ' 2) Start a stopped sandbox\n'
     printf ' 3) Stop this sandbox and keep its data\n'
@@ -255,6 +268,7 @@ case "${1:-menu}" in
     onboard) shift; onboard "$@" ;;
     connect) shift; [[ $# -eq 1 ]] || exit 2; connect "$1" ;;
     verify) "$ROOT/install.sh" verify --profile nemoclaw-podman ;;
+    network) shift; network_check "$@" ;;
     hermes) shift; [[ $# -eq 2 ]] || { printf 'Usage: aiw-nemo hermes [launch|start|stop|status|recover] NAME\n' >&2; exit 2; }; hermes_action "$1" "$2" ;;
-    *) printf 'Usage: aiw-nemo [--version|menu|status|onboard|connect NAME|verify|hermes ACTION NAME]\n' >&2; exit 2 ;;
+    *) printf 'Usage: aiw-nemo [--version|menu|status|network [--sandbox NAME] [--save FILE|--compare FILE] [--probe]|onboard|connect NAME|verify|hermes ACTION NAME]\n' >&2; exit 2 ;;
 esac
