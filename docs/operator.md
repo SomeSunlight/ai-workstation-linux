@@ -13,12 +13,18 @@ DPAPI or any other native Windows service.
 ./install.sh verify                # read-only Ubuntu, Podman and pinned CLI checks
 bash bin/aiw-nemo --version        # Linux Nemo operator revision
 bash bin/aiw-nemo                  # interactive NemoClaw/Hermes operator
+./install.sh register-cli          # one-time user-local registration; no sudo
+aiw                                # launch the menu explicitly from any directory
 ```
 
 The operator menu delegates to **upstream** `nemohermes` commands.
-Menu item 7 selects from the official registry **by number** before offering
-launch/start/stop/status/recover. Menu item 4 attaches a second shell to an
-existing sandbox, not to another terminal's conversation. Enter/0 cancels.
+Menu item 7 selects from the official registry **by number**; it displays
+the registered provider/model and any **known** live phase, and fetches the
+selected sandbox's authoritative status before actions. Unknown phases are
+labelled **not checked**, never guessed. Menu item 4 also selects an existing
+sandbox by number, opening a separate shell rather than another session in
+the same terminal. Enter/0 cancels **without exiting Linux or triggering
+a lifecycle operation**.
 No AIW-owned sandbox registry, automatic rebuild/destroy or network-policy
 bypass is involved.
 
@@ -35,6 +41,48 @@ nemohermes <sandbox-name> status
 **Avoid sharing JSON fields containing hostnames, internal URLs, user paths
 or credentials.** The vendor redacts recognized credentials but logs are
 not a safe way to share all local infrastructure details.
+
+## One command, two entry directories
+
+`./install.sh register-cli` registers a collision-protected
+`~/.local/bin/aiw` executable pointing to **this exact Linux checkout**.
+It is idempotent, uses no sudo, and neither touches NemoClaw nor changes
+shell profiles. If another command already owns the name, it stops rather
+than overwriting it. Log in to a new shell so `~/.local/bin` is on PATH,
+or use `export PATH="$HOME/.local/bin:$PATH"`.
+
+The **Windows project**, once its launcher cutover is explicitly reviewed,
+provides two NemoClaw desktop icons: one opens a *real WSL Linux shell* in
+`~/ai-workstation-linux`, the other in `~`. Neither starts the menu
+automatically. Inside either shell, type `aiw` to open the menu.
+`q` returns to that Linux shell; type `exit` explicitly to close WSL.
+The older one-click icon that ran `bash ./bin/aiw-nemo` as a one-off
+WSL process does **not** have this behavior and can return straight to
+Windows PowerShell when the menu quits.
+
+The reliable manual entry from Windows PowerShell uses an **absolute**
+Linux home path; in the observed Windows environment,
+`--cd ~` unexpectedly retained the Windows current directory:
+
+```powershell
+wsl -d AIW-Nemo -u moresunlight --cd /home/moresunlight
+```
+
+Do not switch the working production shortcut to the Linux candidate
+until both projects have passed the reviewed cutover gates.
+
+## An unexpected Windows reboot and a sandbox start error
+
+If `nemohermes <name> start` reports `OpenShell sandbox entered error
+while waiting for readiness`, it does **not** prove Hermes data loss.
+NemoClaw's source already tolerates transient startup Error states;
+persisting beyond that requires diagnosis. **Do not blindly repeat
+start/recover/rebuild or re-onboard**. From the Linux host, inspect
+`systemctl --user is-active podman.socket`, the selected sandbox's
+`nemohermes <name> status`, read-only `doctor --json` and bounded
+OpenShell sandbox logs. Keep log content and credentials private.
+The separate Speedy Dispatcher may also require its own service restart
+after Windows Update; that is not itself an OpenShell repair.
 
 ## Explicit installation on a clean Ubuntu 26.04 host
 
@@ -77,8 +125,10 @@ the other way round.
 
 ## Owner acceptance: live Hermes data safety
 
-Before any stop/start, migration or experimental recovery of the existing
-`testhermes01` sandbox, follow the [Hermes inventory and gated
-backup/restore checklist](hermes-data-safety.md). The first test reads
-only the existence of six known Hermes state paths. Avoid transmitting
-configuration, environment files, session logs or sensitive inventories.
+Before any destructive migration or experimental recovery of the existing
+`testhermes01` sandbox, follow the [Hermes native backup and transfer
+guide](hermes-data-safety.md). The owner has successfully created and
+CRC-verified the official full Hermes ZIP and protected an encrypted
+copy on another physical drive (2026-11-20). Never publish
+configuration, environment files, logs, credential archives or
+sensitive inventories.
