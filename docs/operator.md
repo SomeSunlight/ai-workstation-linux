@@ -17,6 +17,13 @@ bash bin/aiw-nemo                  # interactive NemoClaw/Hermes operator
 aiw                                # launch the menu explicitly from any directory
 ```
 
+Network addresses, Podman host aliases and before/after snapshots are
+available through `aiw network`. The regular status/menu reads this
+inventory only; the separate disposable network test requires an
+**explicit `--probe`**, and never modifies the Hermes sandbox. For exact
+private snapshot commands, read the
+[controlled recovery and restart qualification](restart-qualification.md).
+
 The operator menu delegates to **upstream** `nemohermes` commands.
 Menu item 7 selects from the official registry **by number**; it displays
 the registered provider/model and any **known** live phase, and fetches the
@@ -115,6 +122,18 @@ Never copy private credentials, the entire WSL home, or `~/.nemoclaw`
 into Git. Allowing one trusted private Dispatcher host must remain
 an explicit, narrow operator decision; do not disable DNS pinning/SSRF
 protections or make a blanket private-network exception.
+
+The November 20 owner incident demonstrates a stopped Hermes sandbox
+that was subsequently stuck in OpenShell `Error`: the persisted
+Podman host alias no longer matched the reachable host-gateway alias
+after Windows/WSL reboot, so OpenShell policy fetch repeatedly failed
+and the container exited 1. The concrete evidence and **bounded
+owner-approved recovery gate** are in
+[controlled recovery and restart qualification](restart-qualification.md).
+Do not treat `recover`, a host gateway restart or `podman network reload`
+as a proven repair of stale `HostConfig.ExtraHosts`. The full native
+Hermes ZIP has been encrypted off WSL, but **no in-place restore,
+application import or cold-reboot recovery test has yet passed**.
 
 A clean shutdown/restart is not a rebuild. Use upstream
 `status -> stop -> status -> start -> launch` **only after**
