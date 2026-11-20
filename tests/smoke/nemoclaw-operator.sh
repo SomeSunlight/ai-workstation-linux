@@ -14,7 +14,7 @@ if [[ "${1:-}" == list ]]; then
   if [[ "${FAKE_NEMO_BAD_LIST:-}" == yes ]]; then
     printf 'malformed upstream JSON\n'
   else
-    printf '%s\n' '{"schemaVersion":1,"defaultSandbox":"testhermes01","sandboxes":[{"name":"testhermes01","provider":"compatible-endpoint","model":"sparringpartner"},{"name":"other-hermes","provider":"openrouter-api","model":"other-model"}]}'
+    printf '%s\n' '{"schemaVersion":1,"defaultSandbox":"testhermes01","sandboxes":[{"name":"testhermes01","provider":"compatible-endpoint","model":"sparringpartner","livePhase":"Ready"},{"name":"other-hermes","provider":"openrouter-api","model":"other-model","livePhase":"Stopped"}]}'
   fi
   exit 0
 fi
@@ -60,17 +60,33 @@ if invoke hermes launch >"$tmp/fail.log" 2>&1; then
 fi
 diff -u "$tmp/expected" "$trace"
 
-# Menu adds one entry; existing selections 1-6 retain their meaning.
-# The user always chooses a NUMBER from the live registry, never types a name.
+# User-scoped alias registration needs no root/Windows/installer actions.
+HOME="$tmp" bash "$ROOT/install.sh" register-cli >"$tmp/registration.log"
+HOME="$tmp" bash "$ROOT/install.sh" register-cli >>"$tmp/registration.log"
+grep -Fq 'already points to this Linux checkout' "$tmp/registration.log"
+HOME="$tmp" "$tmp/.local/bin/aiw" --version >"$tmp/alias-version.log"
+grep -Fq 'aiw-nemo' "$tmp/alias-version.log"
+mkdir -p "$tmp/conflict/.local/bin"
+printf 'unrelated-file\n' > "$tmp/conflict/.local/bin/aiw"
+if HOME="$tmp/conflict" bash "$ROOT/install.sh" register-cli >"$tmp/fail.log" 2>&1; then
+    echo 'Unexpectedly overwrote foreign aiw launcher.' >&2; exit 1
+fi
+grep -Fq 'unrelated-file' "$tmp/conflict/.local/bin/aiw"
+
+# Menu: registry selection by NUMBER, provider/model and optional known live
+# phase. Status of the selected sandbox is checked before presenting actions.
 printf '7\n1\n1\nq\n' | invoke menu >"$tmp/menu.log"
 grep -q 'Hermes: launch / stop / start / recover' "$tmp/menu.log"
 grep -q '1) testhermes01' "$tmp/menu.log"
 grep -q '2) other-hermes' "$tmp/menu.log"
-printf 'launch testhermes01\n' >> "$tmp/expected"
+grep -q 'phase: Ready' "$tmp/menu.log"
+grep -q 'phase: Stopped' "$tmp/menu.log"
+grep -q 'Current NemoClaw sandbox status' "$tmp/menu.log"
+printf 'testhermes01 status\nlaunch testhermes01\n' >> "$tmp/expected"
 diff -u "$tmp/expected" "$trace"
 
 printf '7\n2\n3\nq\n' | invoke menu >"$tmp/menu.log"
-printf 'other-hermes stop\n' >> "$tmp/expected"
+printf 'other-hermes status\nother-hermes stop\n' >> "$tmp/expected"
 diff -u "$tmp/expected" "$trace"
 
 # The shell-connect option also uses the registry selector.
@@ -78,13 +94,18 @@ printf '4\n1\nq\n' | invoke menu >"$tmp/menu.log"
 printf 'testhermes01 connect\n' >> "$tmp/expected"
 diff -u "$tmp/expected" "$trace"
 
-# Enter, 0, invalid numbers and bad registry JSON must not abort the menu,
-# cause an implicit start/stop, or invoke destructive upstream commands.
-for input in $'4\n\nq\n' $'4\n0\nq\n' $'4\n99\nq\n' $'7\n\nq\n' $'7\n1\n\nq\n' $'7\n1\n0\nq\n' $'7\n1\n99\nq\n'; do
+# Enter, 0, invalid numbers and bad registry JSON must not abort the menu
+# or trigger implicit start/stop/rebuild.
+for input in $'4\n\nq\n' $'4\n0\nq\n' $'4\n99\nq\n' \
+             $'7\n\nq\n' $'7\n1\n\nq\n' $'7\n1\n0\nq\n' $'7\n1\n99\nq\n'; do
     printf '%s' "$input" | invoke menu >"$tmp/menu.log" 2>&1
+    if [[ "$input" == $'7\n1\n'* ]]; then
+        printf 'testhermes01 status\n' >> "$tmp/expected"
+    fi
     diff -u "$tmp/expected" "$trace"
 done
 printf '7\n1\n4\nq\n' | FAKE_NEMO_FAIL=yes invoke menu >"$tmp/menu.log" 2>&1
+grep -q 'Status could not be verified' "$tmp/menu.log"
 grep -q 'Hermes action failed' "$tmp/menu.log"
 diff -u "$tmp/expected" "$trace"
 printf '7\nq\n' | FAKE_NEMO_BAD_LIST=yes invoke menu >"$tmp/menu.log" 2>&1
