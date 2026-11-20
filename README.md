@@ -30,6 +30,9 @@ and `testhermes01` sandbox have **not** been changed.
 ./install.sh status
 ./install.sh verify
 bash bin/aiw-nemo             # menu; read status before changing a sandbox
+./install.sh register-cli     # once, as current Linux user (no sudo)
+aiw                           # explicit menu; q returns to Linux shell
+aiw network                   # read-only IP/Podman/OpenShell status
 ```
 
 `status`, `verify` and `--version` make no package, host, sandbox or
@@ -42,6 +45,20 @@ Start with [Operator guide](docs/operator.md) and
 [Side-by-side migration](docs/migration.md). Never run rebuild/destroy,
 change upstream credentials, or replace the old WSL installation
 merely to update the Linux source.
+
+The owner has verified an official **full** Hermes backup and a
+GnuPG-encrypted copy outside WSL (2026-11-20). After an unexpected
+Windows reboot, the original stopped sandbox could not fetch its
+OpenShell policies because its saved Podman host-gateway alias no longer
+matched the reachable alias. No data-destructive repair is attempted
+automatically. The tested Linux CLI can record private before/after
+network snapshots and perform a *separately approved disposable*
+connection probe. See the
+[bounded recovery and restart playbook](docs/restart-qualification.md).
+Learning Hermes and improving secure browser/HTML preview is tracked
+in [Issue #2](https://github.com/SomeSunlight/ai-workstation-linux/issues/2);
+full Windows reboot certification is **not** a precondition for real
+agent experimentation.
 
 ## Architecture
 
