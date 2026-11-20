@@ -156,9 +156,10 @@ aiw network --sandbox testhermes01 \
 ```
 
 The snapshot keeps interface addresses, default gateways, configured
-Podman bridge networks, stored sandbox alias mappings, and any
-provider hostname published in the **official upstream list metadata**
-with its DNS resolution. Provider URLs with credentials/query strings
+Podman bridge networks, stored sandbox alias mappings, **only explicit
+`allowed_ips` host bindings from the official OpenShell sandbox policy**,
+and any provider hostname published in the **official upstream NemoClaw list
+metadata** with its DNS resolution. Provider URLs with credentials/query strings
 are *not* recorded; values unavailable from the published metadata
 are marked unknown. These are **private** user files at mode 0600.
 Do not add them to Git or upload them into a chat.
