@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Offline regression: network diagnostics are read-only unless explicitly probed.
 set -Eeuo pipefail
+trap 'rc=$?; printf "[FAIL] network-check smoke at line %s: %s (exit=%s)\\n" "$LINENO" "$BASH_COMMAND" "$rc" >&2' ERR
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 TMP="$(mktemp -d)"
 trap 'rm -rf -- "$TMP"' EXIT
