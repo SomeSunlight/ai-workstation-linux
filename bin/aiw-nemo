@@ -146,7 +146,10 @@ except (ValueError, TypeError, KeyError, json.JSONDecodeError) as exc:
     fi
     printf '\nRegistered NemoClaw sandboxes:\n'
     while IFS= read -r entry; do
-        IFS=
+        IFS=$'\t' read -r name provider model phase <<< "$entry"
+        sandboxes+=("$name")
+        [[ "$phase" == - || -z "$phase" ]] && phase='not checked'
+        printf ' %2d) %-22s  %s / %s | phase: %s\n' "${#sandboxes[@]}" "$name" "$provider" "$model" "$phase"
     done <<< "$entries"
     printf '  0) Cancel\n'
     read -r -p 'Select sandbox number (Enter cancels): ' choice || return 1
