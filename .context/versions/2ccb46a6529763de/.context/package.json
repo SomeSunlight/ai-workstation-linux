@@ -1,0 +1,68 @@
+{
+  "changes": [],
+  "compiler_version": "0.8.0",
+  "digests": {
+    "normalized": "f43b1c2578cf57ca7c3026cec7bc03ceab8cf1656660a33034ed065e604fbfb9",
+    "package": "f5a0ec3bfd21b13045572eed1a78cdd5ba4e15fe99bbde6e8dd693217a1b7f1d"
+  },
+  "files": [
+    {
+      "path": "CONTEXT.md",
+      "sha256": "01d154f85b82802982891a08c55a0c273f1c11f5d6211105147b852a26683298",
+      "size": 1486
+    }
+  ],
+  "imports": [],
+  "node": {
+    "id": "b1602355-12c7-4664-9b79-09cf20764c82",
+    "name": "AI Workstation Linux",
+    "version": "0.1.0-draft"
+  },
+  "parents": [],
+  "removed_rules": [],
+  "rules": [
+    {
+      "group": "Linux project boundaries",
+      "id": "RULE-A496415DCB9D",
+      "modifications": [],
+      "origin_node_id": "b1602355-12c7-4664-9b79-09cf20764c82",
+      "origin_node_name": "AI Workstation Linux",
+      "statement": "Linux ships its own CI, version and Git provenance; a Windows bootstrap selects a verified immutable Linux commit. Never infer Linux code from the current Windows branch.",
+      "title": "Keep Windows and Linux release identities separate",
+      "why": "Cross-OS branch drift caused the wrong Hermes operator menu to run."
+    },
+    {
+      "group": "Linux project boundaries",
+      "id": "RULE-2234D2634DC1",
+      "modifications": [],
+      "origin_node_id": "b1602355-12c7-4664-9b79-09cf20764c82",
+      "origin_node_name": "AI Workstation Linux",
+      "statement": "Defer sandbox lifecycle and policy authority to upstream NemoClaw/OpenShell, and never run rebuild, destroy, provider changes or onboarding during a normal status, verify or launch.",
+      "title": "Preserve vendor-owned agent state",
+      "why": "A routine restart must not destroy user artifacts or credentials."
+    },
+    {
+      "group": "Linux project boundaries",
+      "id": "RULE-06C5FA29495A",
+      "modifications": [],
+      "origin_node_id": "b1602355-12c7-4664-9b79-09cf20764c82",
+      "origin_node_name": "AI Workstation Linux",
+      "statement": "Neither install nor verify may require PowerShell, Windows executables, WSL-specific paths or native Windows service processes.",
+      "title": "Keep native Ubuntu portable",
+      "why": "The same artifact must work on a native Ubuntu host."
+    },
+    {
+      "group": "Linux project boundaries",
+      "id": "RULE-B532DB589234",
+      "modifications": [],
+      "origin_node_id": "b1602355-12c7-4664-9b79-09cf20764c82",
+      "origin_node_name": "AI Workstation Linux",
+      "statement": "Use the official NemoClaw credential bridge and explicit allowlists for any approved private inference endpoint.",
+      "title": "Keep secrets out of source and logs",
+      "why": "Agents remain bounded by upstream security controls."
+    }
+  ],
+  "schema": "contextcanon/package/v4",
+  "sources": [],
+  "topics": []
+}

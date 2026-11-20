@@ -1,0 +1,26 @@
+{
+  "versions": {
+    "project": "0.1.0",
+    "ubuntu": {
+      "release": "26.04"
+    },
+    "uv": "0.11.26",
+    "ansible": {
+      "core": "2.21.1",
+      "lint": "26.6.0"
+    },
+    "nemoclaw_podman": {
+      "ubuntu": {
+        "release": "26.04"
+      },
+      "podman": {
+        "minimum_version": "5.0.0",
+        "apt_package_version": "5.7.0+ds2-3build1"
+      },
+      "nemoclaw": {
+        "repository": "https://github.com/NVIDIA/NemoClaw.git",
+        "commit": "82e1ad7474ec7175c5b860b2bfa9d7940bc6e75f"
+      }
+    }
+  }
+}

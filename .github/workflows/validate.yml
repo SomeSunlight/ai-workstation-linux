@@ -1,0 +1,59 @@
+name: Validate Linux source
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  source-and-operator:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell, JSON, independent CLI and NemoClaw operator contracts
+        shell: bash
+        run: |
+          bash tests/smoke/linux-contract.sh
+          bash tests/smoke/uv-install-contract.sh
+          bash tests/smoke/nemoclaw-operator.sh
+          bash tests/smoke/network-check.sh
+      - name: Verify no Windows and legacy Docker runtime imported
+        shell: bash
+        run: |
+          ! test -e bootstrap/windows
+          ! test -e ansible/roles/docker_engine
+          ! test -e aiw.cmd
+
+  ansible-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+      - name: Set up pinned uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.26"
+      - name: Check independent Linux lockfile
+        run: |
+          uv lock --check --python 3.12
+          uv sync --frozen --python 3.12
+      - name: Verify official ContextCanon parent and generated snapshot
+        run: |
+          uvx --from "git+https://github.com/SomeSunlight/context-canon.git@5a1f2bff24a9f6c6af49d96044eaf15b80d0d0b6" contextcanon check --all .
+      - name: Lint extracted Ubuntu/Podman/NemoClaw Ansible
+        env:
+          ANSIBLE_CONFIG: ${{ github.workspace }}/ansible/ansible.cfg
+          ANSIBLE_INVENTORY: ${{ github.workspace }}/ansible/inventory/localhost.yml
+          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/ansible/roles
+        run: uv run --frozen ansible-lint --config-file ansible/.ansible-lint ansible/playbooks
+      - name: Check isolated Linux playbook syntax
+        env:
+          ANSIBLE_CONFIG: ${{ github.workspace }}/ansible/ansible.cfg
+          ANSIBLE_INVENTORY: ${{ github.workspace }}/ansible/inventory/localhost.yml
+          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/ansible/roles
+        run: |
+          for playbook in ansible/playbooks/*.yml; do
+            uv run --frozen ansible-playbook "$playbook" --syntax-check
+          done

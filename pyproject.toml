@@ -1,0 +1,12 @@
+[project]
+name = "ai-workstation-linux-automation"
+version = "0.1.0"
+description = "Portable Ubuntu rootless Podman and NVIDIA NemoClaw/Hermes automation"
+requires-python = "==3.12.*"
+dependencies = [
+    "ansible-core==2.21.1",
+    "ansible-lint==26.6.0",
+]
+
+[tool.uv]
+package = false
