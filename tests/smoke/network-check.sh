@@ -35,6 +35,11 @@ cat > "$TMP/bin/getent" <<'MOCK'
 #!/usr/bin/env bash
 echo '192.0.2.1 STREAM example.invalid'
 MOCK
+cat > "$TMP/bin/openshell" <<'MOCK'
+#!/usr/bin/env bash
+[[ "$*" == "sandbox get testhermes01 -o json" ]] || exit 97
+printf '%s\n' '{"revision":2,"policy":{"network_policies":{"native_hosted_inference":{"endpoints":[{"host":"example.invalid","allowed_ips":["192.0.2.1"],"token":"SECRET_NOT_SAVED"},{"host":"another.invalid","allowed_ips":[]}]}}},"secret":"DO_NOT_RECORD"}'
+MOCK
 cat > "$TMP/bin/podman" <<'MOCK'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -66,6 +71,9 @@ grep -Fq 'container reachability NOT established' "$TMP/first.log"
 grep -Fq 'Private snapshot created (0600)' "$TMP/first.log"
 [[ "$(stat -c %a "$TMP/before.json")" == 600 ]] || exit 1
 grep -Fq '169.254.2.2' "$TMP/before.json"
+grep -Fq 'OpenShell policy pin: example.invalid => 192.0.2.1/32' "$TMP/first.log"
+grep -Fq '192.0.2.1/32' "$TMP/before.json"
+if grep -Fq SECRET_NOT_SAVED "$TMP/before.json"; then echo 'Raw OpenShell policy credential leaked into snapshot' >&2; exit 1; fi
 if grep -Fq DO_NOT_RECORD "$TMP/before.json"; then echo 'Secret URL query leaked into network snapshot' >&2; exit 1; fi
 if grep -q '^run ' "$FAKE_PODMAN_TRACE"; then echo 'Read-only inventory unexpectedly started a container' >&2; exit 1; fi
 
