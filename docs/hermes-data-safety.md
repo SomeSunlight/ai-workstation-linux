@@ -237,14 +237,17 @@ are independently reproducible through supported installation and
 onboarding. A full sandbox image or mandatory restore drill is not
 required for the Linux PR.
 
-## After a successful full official backup (NOT YET EXECUTED)
+## Verified full Hermes backup — accepted; restore still untested
 
-1. The official **full** Hermes ZIP has been created and its private
-   host copy passed an independent ZIP CRC check.
-2. Encrypt the already downloaded official ZIP using GnuPG directly,
-   then compare decrypted bytes to the private Linux original (above).
-3. Retain the encryption secret separately in a password manager;
-   preserve the original ZIP until the encrypted off-WSL copy is proven.
+1. **Accepted, 2026-11-20:** the full **2,824-file** Hermes ZIP was
+   created and its private WSL-host copy passed independent ZIP CRC.
+2. **Accepted, 2026-11-20:** GnuPG AES-256 encrypted the official ZIP
+   outside WSL onto another Windows drive; decrypt-to-pipe comparison
+   showed byte-for-byte equality. The password is stored separately.
+   This is not a claim of independent *physical* media or a tested import.
+3. Keep the encrypted off-WSL original and decryption key independently
+   accessible before any reinstall. Keep the raw working copy private
+   until owner chooses to retire it.
 4. If Hermes must be reinstalled, create a new NemoClaw sandbox
    through its supported onboarding, configure its provider and policies,
    then restore only the user data that is appropriate for the new
