@@ -129,6 +129,6 @@ Before any destructive migration or experimental recovery of the existing
 `testhermes01` sandbox, follow the [Hermes native backup and transfer
 guide](hermes-data-safety.md). The owner has successfully created and
 CRC-verified the official full Hermes ZIP and protected an encrypted
-copy on another physical drive (2026-11-20). Never publish
+copy on another Windows drive (2026-11-20; physical disk independence not verified). Never publish
 configuration, environment files, logs, credential archives or
 sensitive inventories.
