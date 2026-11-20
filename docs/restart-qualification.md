@@ -84,8 +84,19 @@ contents into CI, GitHub issues or public PR descriptions.
    policy fetch, `Ready`, local provider inference and a tiny Hermes
    interaction. If it fails, do not improvise additional repairs.
 
-A supported non-destructive in-place recovery has **not yet been
-verified**; there is no claimed repair or guarantee.
+**Source-review result (2026-11-20):** OpenShell's exact installed
+**v0.0.116** [sandbox CLI command set](https://github.com/NVIDIA/OpenShell/blob/v0.0.116/crates/openshell-cli/src/main.rs#L1334-L1675)
+offers `create`, `get`, `list`, `delete`, `stop`, `start`, `exec`,
+`connect`, `upload`, `download`, and provider operations; **no
+documented in-place host-alias rebind/refresh**. The owner's real
+`nemohermes testhermes01 start` attempt has already failed. Podman's
+container-update contract does not expose a supported static
+`ExtraHosts` rewrite. The bounded **vendor-only in-place recovery gate
+therefore has no qualified safe action at this pinned version**:
+**stop here, preserve the original, and prepare a new sandbox**.
+This does *not* claim that an undocumented repair is impossible or
+that later upstream releases cannot fix it; it deliberately avoids
+unsupported, persistent-container surgery.
 
 ## Priority 2: complete predictable AIW entry points
 
