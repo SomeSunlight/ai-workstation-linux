@@ -77,8 +77,8 @@ grep -Fq 'not written' "$TMP/conflict.log"
 export FAKE_HOST_ALIAS="169.254.1.2"
 python3 "$ROOT/bin/aiw-network-check.py" --sandbox testhermes01 \
   --compare "$TMP/before.json" >"$TMP/diff.log"
-grep -Fq -- '-        "host.containers.internal": "169.254.2.2"' "$TMP/diff.log"
-grep -Fq -- '+        "host.containers.internal": "169.254.1.2"' "$TMP/diff.log"
+grep -Eq -- '^- +\"host.containers.internal\": \"169\\.254\\.2\\.2\"' "$TMP/diff.log"
+grep -Eq -- '^\\+ +\"host.containers.internal\": \"169\\.254\\.1\\.2\"' "$TMP/diff.log"
 if grep -q '^run ' "$FAKE_PODMAN_TRACE"; then echo 'Comparison unexpectedly started a container' >&2; exit 1; fi
 
 export FAKE_HOST_ALIAS="169.254.2.2"
