@@ -19,10 +19,11 @@ trap cleanup EXIT
 
 usage() {
     cat <<'HELP'
-Usage: ./install.sh [install|verify|status|--version] [--yes] [--profile nemoclaw-podman]
+Usage: ./install.sh [install|verify|status|register-cli|--version] [--yes] [--profile nemoclaw-podman]
   status     Read-only status of the Linux host and installed NemoClaw
   verify     Read-only checks of exact Ubuntu, rootless Podman and pinned CLI
   install    Explicit host install, preserving any existing sandbox and credentials
+  register-cli  Install/verify user-local 'aiw' command (no root or service changes)
   --version  Offline release and Git checkout revision (branch, SHA, dirty)
 No WSL/Windows operations, no implicit onboarding, rebuild or destroy.
 HELP
@@ -30,7 +31,7 @@ HELP
 
 while (($#)); do
     case "$1" in
-        install|verify|status) ACTION="$1" ;;
+        install|verify|status|register-cli) ACTION="$1" ;;
         --version|version) ACTION=version ;;
         --yes|-y) ASSUME_YES=true ;;
         --profile)
@@ -147,6 +148,33 @@ install_uv() {
         fail "Unexpected installed uv version (expected $expected, found ${current:-unreadable})."
 }
 
+register_cli() {
+    # An explicit, user-owned entrypoint. No shell rc changes, sudo, or
+    # second UI; it delegates to the reviewed Linux operator in this checkout.
+    [[ "$(id -u)" != 0 ]] || fail 'Register aiw as a regular Linux user.'
+    local bindir="$HOME/.local/bin" link="$HOME/.local/bin/aiw" tmp
+    mkdir -p -- "$bindir"
+    if [[ -e "$link" || -L "$link" ]]; then
+        # Never overwrite an unrelated executable/alias or a stale shortcut
+        # behind the operator's back. A previously registered exact wrapper
+        # is idempotent; moving the checkout needs explicit re-registration.
+        local expected
+        expected="$(printf '#!/usr/bin/env bash\nexec /bin/bash %q "$@"\n' "$ROOT/bin/aiw-nemo")"
+        if [[ -f "$link" && ! -L "$link" && "$(cat -- "$link")" == "$expected" ]]; then
+            printf '[OK] aiw already points to this Linux checkout.\n'
+            return
+        fi
+        fail "'$link' already exists and was not modified. Inspect ownership before replacing it."
+    fi
+    umask 077
+    tmp="$(mktemp "$bindir/.aiw-XXXXXXXX")"
+    printf '#!/usr/bin/env bash\nexec /bin/bash %q "$@"\n' "$ROOT/bin/aiw-nemo" > "$tmp"
+    chmod 700 "$tmp"
+    mv -n -- "$tmp" "$link"
+    [[ -f "$link" ]] || fail 'User-local aiw registration failed.'
+    printf '[OK] aiw registered in %s (open a new Linux login shell or export PATH).\n' "$bindir"
+}
+
 install_linux() {
     preflight
     if [[ "$ASSUME_YES" != true ]]; then
@@ -182,6 +210,7 @@ install_linux() {
     (cd "$ROOT"; "$UV" run --frozen ansible-playbook --become-password-file "$PASSWORD_FILE" ansible/playbooks/nemoclaw-become-preflight.yml)
     (cd "$ROOT"; "$UV" run --frozen ansible-playbook --become-password-file "$PASSWORD_FILE" ansible/playbooks/nemoclaw.yml)
     (cd "$ROOT"; "$UV" run --frozen ansible-playbook --become-password-file "$PASSWORD_FILE" ansible/playbooks/nemoclaw-verify.yml)
+    register_cli
     printf '[OK] Linux host installed; NemoClaw onboarding remains an explicit operator action.\n'
 }
 
@@ -189,5 +218,6 @@ case "$ACTION" in
     version) version ;;
     status) version; bash "$ROOT/bin/aiw-nemo" status ;;
     verify) verify ;;
+    register-cli) register_cli ;;
     install) install_linux ;;
 esac
