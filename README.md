@@ -56,6 +56,14 @@ policies. Each chat is inside one existing sandbox. The shared gateway
 is a separate service; `q` exits only the menu, not Linux or Hermes'
 background gateway.
 
+**App-first navigation:** Choosing **Continue most recent conversation**
+on a stopped sandbox now offers an explicit **start this sandbox first?**
+confirmation, then runs the normal safety preflight and resumes the agent
+only after upstream reports `Ready`. No automatic start is performed on
+menu entry and no global `last sandbox` registry is introduced. That
+readiness interaction is generic enough for future agents; Hermes session
+resumption remains its own adapter.
+
 **Windows reboot protection (Linux Issue #3):** NVIDIA's native
 Podman alias `169.254.2.2/32` disappeared after a full Windows reboot
 while the gateway service remained active. A sandbox then repeatedly
