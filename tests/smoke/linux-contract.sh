@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 cd "$ROOT"
-bash -n install.sh bootstrap/linux/install.sh bin/aiw-nemo
+bash -n install.sh bootstrap/linux/install.sh bin/aiw-nemo bin/aiw-operator-menu.sh
 python3 -m json.tool config/versions.json >/dev/null
 [[ -f uv.lock && -f pyproject.toml ]]
 [[ ! -e bootstrap/windows/Launch-NemoClaw.ps1 ]]
