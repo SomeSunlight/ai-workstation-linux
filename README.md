@@ -10,18 +10,30 @@ entrypoint. **NemoClaw/OpenShell remain the sole owners of sandbox, session,
 credential, provider and policy management.** No competing AIW supervisor
 or sandbox inventory is introduced.
 
-## Current development status
+## Current development status — 2026-11-22
 
-**Migration candidate, not an approved deployment.** Extraction follows
-[Issue #78](https://github.com/SomeSunlight/ai-workstation/issues/78).
-Development takes place in a draft PR on
-`feat/78-linux-bootstrap-extraction`, not on `main`.
+The independent Linux repository's initial extraction
+([PR #1](https://github.com/SomeSunlight/ai-workstation-linux/pull/1))
+is **merged**. This repository provides the Ubuntu 26.04 host installer,
+rootless Podman/NemoClaw pins, the separate `aiw` CLI, verification
+and offline tests. Linux
+[Draft PR #5](https://github.com/SomeSunlight/ai-workstation-linux/pull/5)
+contains the new operator-first cockpit and interactive reboot
+preflight, pending **owner approval and squash-merge**.
 
-This repository already contains the extracted Ubuntu 26.04 Ansible
-roles, exact NemoClaw vendor commit and Podman version pins, a standalone
-Linux installer, a read-only verifier, an offline Git-aware version
-display, and focused contract tests. The existing `AIW-Nemo` distro
-and `testhermes01` sandbox have **not** been changed.
+The operator has **already exercised the candidate on the actual
+`AIW-Nemo` distro** with a new `testhermes03` sandbox. It passed
+a complete Windows reboot followed by explicit restoration of
+NVIDIA's missing host-loopback address, upstream sandbox startup
+and continuation of the **same Hermes session**. The further
+convenience change to offer sandbox startup when a user selects
+“Continue conversation” was added *after* that reboot test and has
+offline CI coverage, but has not separately been live-qualified.
+Windows [PR #84](https://github.com/SomeSunlight/ai-workstation/pull/84)
+(the penguin shell launcher) is **merged**; the independent pinned
+Windows/Linux handoff [PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85)
+remains **draft**. A working penguin is not proof that the entire
+cross-repository production cutover is complete.
 
 ## Linux entrypoints
 
@@ -72,14 +84,14 @@ operator now checks this exact host prerequisite **before** starting a
 stopped sandbox or launching/resuming a chat. If it is missing, it asks
 for explicit permission to re-establish NVIDIA's address with `sudo`
 and verifies the result. It does not rescue already-`Error` sandboxes,
-change OpenShell versions or alter Podman container metadata. The new
-workflow **still requires owner testing after another full Windows
-restart**; see [the evidence and upstream handoff](https://github.com/SomeSunlight/ai-workstation-linux/issues/3)
+change OpenShell versions or alter Podman container metadata. The **full Windows reboot and manual repair have been live-tested** with
+`testhermes03`; the later one-click *sandbox-start offer* has only
+been covered by offline mocks so far. See
+[the evidence and upstream handoff](https://github.com/SomeSunlight/ai-workstation-linux/issues/3)
 and [operator guide](docs/operator.md).
 
 The owner has previously verified a native encrypted Hermes backup
-outside WSL, but no import test. The latest NemoClaw release is
-v0.0.145 (2026-11-18), one release newer than the pinned v0.0.144;
+outside WSL, but no import test. NemoClaw v0.0.145 (2026-11-18) is newer than the pinned v0.0.144;
 **`./install.sh install` is not a supported upgrade shortcut**.
 Version changes need a separate, explicit vendor-compatible operation.
 Hermes browser/HTML preview and local Strata are tracked by
