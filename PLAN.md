@@ -40,11 +40,12 @@
 ## Post-Windows-restart operational UX — Issues #3 and #4
 
 - [x] Capture four staged restart results: sandbox, gateway and WSL restarts passed; complete Windows reboot reproduced policy-fetch/host-IP failure.
-- [x] Compare private read-only network snapshots: vendor Podman host aliases persisted at §`169.254.2.2§`; the loopback interface lost that address; gateway remained active.
+- [x] Compare private read-only network snapshots: vendor Podman host aliases persisted at `169.254.2.2`; the loopback interface lost that address; gateway remained active.
 - [x] Trace the exact pinned NVIDIA source: alias setup is part of effectful native-Podman host preparation but absent from the installed user-systemd gateway unit and normal existing-sandbox startup.
 - [x] Save a sanitized, standalone evidence dossier in [Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3), retaining uncertainty until a repaired Windows reboot succeeds.
 - [x] Implement draft [Issue #4](https://github.com/SomeSunlight/ai-workstation-linux/issues/4) operator cockpit: multi-sandbox selection, conversation vs sandbox lifecycle, shared gateway status, fail-closed host-alias guard, consented NVIDIA-equivalent preparation and scoped Node warning suppression.
-- [ ] Verify exact-head offline CI; obtain owner approval to test this branch under the existing §`AIW-Nemo§` (never auto-merge).
-- [ ] Owner live test: new disposable sandbox; resume latest Hermes conversation; Windows clean shutdown/restart; AIW preparation prompt before sandbox start; verified Ready and real inference turn.
+- [x] Earlier draft CI passed (two jobs), and owner accepted the live operator branch for a Windows-restart qualification. New menu follow-up still requires exact-head CI and optional live check before merge.
+- [x] Owner live test (2026-11-21): new `testhermes03` sandbox, a persisted Hermes conversation, explicit sandbox stop, complete Windows reboot, missing host alias detected, approved sudo restoration, vendor start reached `Ready`, and the *same* Hermes session resumed. The log confirms a pre-restart agent answer; it does not independently show a newly generated post-restart answer.
+- [x] Usability follow-up: stopped sandbox now offers visible, explicit user consent to start before continuing an existing Hermes conversation or opening the shell; no global last-sandbox state or silent auto-start.
 - [ ] Plan a separately approved v0.0.144 → v0.0.145 vendor upgrade. The original Linux installer is pin-verifying and refuses in-place upgrades; the upstream installer may require backups of Error-phase sandboxes. Do not silently change the pin.
 - [ ] After live acceptance, prepare an NVIDIA **NemoClaw** (not OpenClaw) issue or PR and a narrow before/after regression test in a separate conversation.
