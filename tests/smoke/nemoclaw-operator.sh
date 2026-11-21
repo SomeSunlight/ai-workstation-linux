@@ -50,7 +50,7 @@ if [[ "${1:-}" == list && "${2:-}" == --json ]]; then
     if [[ "${FAKE_BAD_LIST:-}" == yes ]]; then
         printf 'malformed upstream JSON\n'
     else
-        printf '%s\n' '{"schemaVersion":1,"defaultSandbox":"ready-hermes","sandboxes":[{"name":"ready-hermes","provider":"openrouter-api","model":"deepseek","livePhase":"Ready"},{"name":"stopped-hermes","provider":"compatible-endpoint","model":"sparringpartner","livePhase":"Stopped"},{"name":"error-hermes","provider":"openrouter-api","model":"other-model","livePhase":"Error"}]}'
+        printf '%s\n' '{"schemaVersion":1,"defaultSandbox":"ready-hermes","sandboxes":[{"name":"ready-hermes","provider":"openrouter-api","model":"deepseek","livePhase":"Ready"},{"name":"stopped-hermes","provider":"compatible-endpoint","model":"sparringpartner","livePhase":"Stopped"},{"name":"error-hermes","provider":"openrouter-api","model":"other-model","livePhase":"Error"},{"name":"boot-hermes","provider":"openrouter-api","model":"extra-model","livePhase":"Stopped"}]}'
     fi
     exit 0
 fi
@@ -60,6 +60,13 @@ if [[ "${2:-}" == status && "${3:-}" == --json ]]; then
         ready-hermes) phase=Ready; provider=openrouter-api ;;
         stopped-hermes) phase=Stopped; provider=compatible-endpoint ;;
         error-hermes) phase=Error; provider=openrouter-api ;;
+        boot-hermes)
+            provider=openrouter-api
+            if grep -Fxq 'boot-hermes start' "$FAKE_NEMO_TRACE"; then
+                phase=Ready
+            else
+                phase=Stopped
+            fi ;;
         *) phase=Unknown; provider=unknown ;;
     esac
     printf '{"schemaVersion":1,"name":"%s","phase":"%s","gatewayState":"present","provider":"%s","model":"test"}\n' "$1" "$phase" "$provider"
@@ -212,6 +219,45 @@ printf '1\n3\n4\n0\nq\n' | invoke menu > "$tmp/menu.log" 2>&1
 printf '  Mock Error-phase attempt (no vendor start):\n'
 grep -F 'OpenShell Error' "$tmp/menu.log"
 if grep -Fxq 'error-hermes start' "$trace"; then exit 1; fi
+
+# A user's request to continue a chat may offer to start the selected
+# stopped sandbox, but NEVER silently starts it. The actual Hermes exec
+# still requires an interactive terminal; the startup path is mock-tested.
+smoke_step "Stopped-sandbox chat UX: decline, reboot guard, approve, verify Ready"
+printf '1\n4\n2\nn\n0\nq\n' | invoke menu > "$tmp/menu.log" 2>&1
+printf '  Mock selected sandbox is Stopped; operator says no:\n'
+grep -F 'Start this sandbox before continuing the most recent Hermes conversation? [y/N]' "$tmp/menu.log"
+grep -F 'Cancelled. Sandbox remains stopped.' "$tmp/menu.log"
+if grep -Fxq 'boot-hermes start' "$trace"; then
+    echo 'Declined consent unexpectedly started the sandbox.' >&2; exit 1
+fi
+
+printf '1\n4\n2\ny\n0\nq\n' | FAKE_IP_STATE=missing invoke menu > "$tmp/menu.log" 2>&1
+printf '  Mock selected sandbox is Stopped; operator approves, but host alias is missing:\n'
+grep -F 'Sandbox-to-host' "$tmp/menu.log" | head -n 1 || :
+grep -F 'NVIDIA Podman gateway alias is missing.' "$tmp/menu.log"
+grep -F '[BLOCKED] Interactive approval required.' "$tmp/menu.log"
+if grep -Fxq 'boot-hermes start' "$trace"; then
+    echo 'Missing host alias unexpectedly allowed a sandbox start.' >&2; exit 1
+fi
+
+printf '1\n4\n2\ny\n0\nq\n' | invoke menu > "$tmp/menu.log" 2>&1
+printf '  Mock selected sandbox is Stopped; operator approves, host alias ready:\n'
+grep -F 'Start this sandbox before continuing the most recent Hermes conversation? [y/N]' "$tmp/menu.log"
+grep -F '[OK] Sandbox boot-hermes is Ready; continuing with requested action.' "$tmp/menu.log"
+[[ "$(grep -Fxc 'boot-hermes start' "$trace")" == 1 ]]
+# CI/stdin pipe is not a terminal, so no fake Hermes interactive session.
+grep -F '[BLOCKED] Hermes chat needs an interactive terminal.' "$tmp/menu.log"
+if grep -Fq 'boot-hermes exec' "$trace"; then
+    echo 'A noninteractive test unexpectedly dispatched Hermes chat.' >&2; exit 1
+fi
+
+printf '1\n3\n2\n0\nq\n' | invoke menu > "$tmp/menu.log" 2>&1
+printf '  Mock Error-phase sandbox: no automatic recovery:\n'
+grep -F '[BLOCKED] error-hermes is in OpenShell Error' "$tmp/menu.log"
+if grep -Fxq 'error-hermes start' "$trace"; then
+    echo 'Error-phase sandbox unexpectedly started.' >&2; exit 1
+fi
 
 # Empty, invalid and corrupt inventory choices cancel safely.
 smoke_step "Cancel safely and reject invalid inventory/selection"
