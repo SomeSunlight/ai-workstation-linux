@@ -33,6 +33,7 @@ bash bin/aiw-nemo             # menu; read status before changing a sandbox
 ./install.sh register-cli     # once, as current Linux user (no sudo)
 aiw                           # explicit menu; q returns to Linux shell
 aiw network                   # read-only IP/Podman/OpenShell status
+aiw gateway status            # show shared gateway and reboot-sensitive host alias
 ```
 
 `status`, `verify` and `--version` make no package, host, sandbox or
@@ -46,19 +47,35 @@ Start with [Operator guide](docs/operator.md) and
 change upstream credentials, or replace the old WSL installation
 merely to update the Linux source.
 
-The owner has verified an official **full** Hermes backup and a
-GnuPG-encrypted copy outside WSL (2026-11-20). After an unexpected
-Windows reboot, the original stopped sandbox could not fetch its
-OpenShell policies because its saved Podman host-gateway alias no longer
-matched the reachable alias. No data-destructive repair is attempted
-automatically. The tested Linux CLI can record private before/after
-network snapshots and perform a *separately approved disposable*
-connection probe. See the
-[bounded recovery and restart playbook](docs/restart-qualification.md).
-Learning Hermes and improving secure browser/HTML preview is tracked
-in [Issue #2](https://github.com/SomeSunlight/ai-workstation-linux/issues/2);
-full Windows reboot certification is **not** a precondition for real
-agent experimentation.
+**Operator workflow:** Open a NemoClaw WSL penguin, type `aiw`, choose
+**My Hermes sandboxes**, select a sandbox by number, and choose
+**New chat**, **Continue last chat**, **Start sandbox** or **Stop sandbox**.
+A sandbox's model/provider is recorded by NemoClaw, not AIW; different
+sandboxes can use local Strata or OpenRouter and different upstream
+policies. Each chat is inside one existing sandbox. The shared gateway
+is a separate service; `q` exits only the menu, not Linux or Hermes'
+background gateway.
+
+**Windows reboot protection (Linux Issue #3):** NVIDIA's native
+Podman alias `169.254.2.2/32` disappeared after a full Windows reboot
+while the gateway service remained active. A sandbox then repeatedly
+failed to fetch its policy and entered OpenShell `Error`. The AIW
+operator now checks this exact host prerequisite **before** starting a
+stopped sandbox or launching/resuming a chat. If it is missing, it asks
+for explicit permission to re-establish NVIDIA's address with `sudo`
+and verifies the result. It does not rescue already-`Error` sandboxes,
+change OpenShell versions or alter Podman container metadata. The new
+workflow **still requires owner testing after another full Windows
+restart**; see [the evidence and upstream handoff](https://github.com/SomeSunlight/ai-workstation-linux/issues/3)
+and [operator guide](docs/operator.md).
+
+The owner has previously verified a native encrypted Hermes backup
+outside WSL, but no import test. The latest NemoClaw release is
+v0.0.145 (2026-11-18), one release newer than the pinned v0.0.144;
+**`./install.sh install` is not a supported upgrade shortcut**.
+Version changes need a separate, explicit vendor-compatible operation.
+Hermes browser/HTML preview and local Strata are tracked by
+[Issue #2](https://github.com/SomeSunlight/ai-workstation-linux/issues/2).
 
 ## Architecture
 
