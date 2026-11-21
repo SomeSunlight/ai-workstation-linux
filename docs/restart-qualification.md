@@ -261,8 +261,25 @@ preparation. The installed
 template, with **no drop-ins**; it generates TLS certificates and starts
 the gateway binary but does not prepare the network alias.
 Regular existing-sandbox start does not perform equivalent host
-preparation. **No post-repair successful retest has occurred**; the
-causal fix remains to be validated by the owner.
+preparation. **Post-repair reboot qualification succeeded (2026-11-21):** The owner
+created `testhermes03`, ran a Hermes conversation, exited with `/quit`,
+explicitly stopped only the sandbox and rebooted Windows without terminating
+WSL manually. On re-entering AIW, the shared OpenShell gateway and Podman
+socket were active, `169.254.2.2/32` was again missing, and the sandbox
+was `Stopped`. AIW requested permission to run the NVIDIA address repair;
+the owner approved via `sudo`. The command verified the address,
+`nemohermes <name> start` then reported `Ready`, and Hermes **resumed
+the exact previous session ID**, demonstrating preserved user conversation
+state after full Windows reboot. No automatic repair at Windows startup was
+claimed: the repair happens **interactively before the next AIW action**.
+No existing Error-phase sandbox was resurrected. See
+[Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3).
+
+**Usability follow-up:** A request to resume a session while the sandbox is
+Stopped originally failed with a generic `[BLOCKED]` message. The current
+Draft PR #5 now offers an explicit start of that selected sandbox before
+carrying out the requested Hermes action, reusing the proven reboot
+network guard, and verifies `Ready` after start.
 
 The new
 [operator-first menu design](https://github.com/SomeSunlight/ai-workstation-linux/issues/4)
