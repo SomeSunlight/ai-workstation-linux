@@ -77,7 +77,7 @@ scanner not available (not to be hidden).
 - [x] Trace the exact pinned NVIDIA source: alias setup is part of effectful native-Podman host preparation but absent from the installed user-systemd gateway unit and normal existing-sandbox startup.
 - [x] Save a sanitized, standalone evidence dossier in [Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3), retaining uncertainty until a repaired Windows reboot succeeds.
 - [x] Implement draft [Issue #4](https://github.com/SomeSunlight/ai-workstation-linux/issues/4) operator cockpit: multi-sandbox selection, conversation vs sandbox lifecycle, shared gateway status, fail-closed host-alias guard, consented NVIDIA-equivalent preparation and scoped Node warning suppression.
-- [x] Owner's transparent smoke test returned `[OK] AIW cockpit` and exit code 0 after the hidden-input bug was corrected; earlier exact-head CI ran green. Final PR documentation-only changes require a fresh final-head CI check.
+- [x] Owner's transparent smoke test returned `[OK] AIW cockpit` and exit code 0 after the hidden-input bug was corrected; source/CI validation has run successfully on the updated draft. The merge gate remains **final-head CI green**.
 - [x] Owner live test (2026-11-21): new `testhermes03` sandbox, a persisted Hermes conversation, explicit sandbox stop, complete Windows reboot, missing host alias detected, approved sudo restoration, vendor start reached `Ready`, and the *same* Hermes session resumed. The log confirms a pre-restart agent answer; it does not independently show a newly generated post-restart answer.
 - [x] Usability follow-up implemented with mock-backed smoke coverage: stopped sandbox offers visible consent to start before a chat or shell, checks host address and fresh `Ready`, and never silently starts. **Separate live confirmation not yet recorded.**
 - [ ] Separately approve and qualify NemoClaw v0.0.144 → v0.0.145 (or a re-verified newer release) upgrade. The Linux installer checks exact pins and is **not an in-place upgrade command**; review any vendor backup/cleanup impact on older Error-phase sandboxes. Do not silently change the pin.
@@ -89,6 +89,6 @@ scanner not available (not to be hidden).
 - [x] Real `testhermes03` cold Windows-restart recovery and preserved Hermes conversation observed.
 - [x] New menu/safety contracts covered by transparent offline smoke tests (including consent to start a Stopped sandbox).
 - [x] Operator/README/restart instructions updated to distinguish old incident from successful manual recovery.
-- [ ] Final PR **exact-head** CI fully green after final documentation changes.
+- [x] PR #5 **exact-head** CI green after documentation reconciliation (both Linux source/operator and Ansible-contract jobs; revalidate the very final commit in the PR checks).
 - [ ] Owner accepts PR #5 and initiates squash-merge; no automatic merge here.
 - [ ] Post-merge: verify `main` revision and handoff the Windows pin only through the separate Windows draft PR.
