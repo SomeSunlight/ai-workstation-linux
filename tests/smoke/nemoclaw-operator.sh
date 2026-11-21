@@ -122,9 +122,12 @@ fi
 [[ "$(grep -Fxc 'stopped-hermes start' "$trace")" == 1 ]]
 
 # Non-interactive repair, stop and conversation resume must not mutate state.
-if FAKE_IP_STATE=missing invoke gateway prepare > "$tmp/fail" 2>&1; then exit 1; fi
+# Redirect stdin explicitly: unlike CI, an operator running this smoke test
+# has a real TTY. Without /dev/null, gateway stop waits for hidden confirmation
+# (its output goes to the private test log), appearing to hang indefinitely.
+if FAKE_IP_STATE=missing invoke gateway prepare </dev/null > "$tmp/fail" 2>&1; then exit 1; fi
 grep -Fq 'Interactive approval required' "$tmp/fail"
-if invoke gateway stop > "$tmp/fail" 2>&1; then exit 1; fi
+if invoke gateway stop </dev/null > "$tmp/fail" 2>&1; then exit 1; fi
 grep -Fq 'Interactive confirmation required' "$tmp/fail"
 if invoke hermes resume ready-hermes > "$tmp/fail" 2>&1; then exit 1; fi
 grep -Fq 'interactive terminal' "$tmp/fail"
