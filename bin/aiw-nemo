@@ -74,9 +74,9 @@ status() {
     fi
     if command -v nemohermes >/dev/null 2>&1; then
         vendor_hermes --version || true
-        printf 'NemoClaw manages sandbox status: use option 3 for its native CLI.\n'
+        printf 'NemoClaw owns sandbox state; choose My Hermes sandboxes to inspect it.\n'
     else
-        printf 'NemoClaw Hermes CLI not yet installed. Choose option 2 after installation.\n'
+        printf 'NemoClaw Hermes CLI not installed; use the explicit Linux host installer first.\n'
     fi
     printf '\n=== Network addresses (snapshot only; no container started) ===\n'
     network_check || printf '[WARN] Network snapshot unavailable; no repair attempted.\n' >&2
