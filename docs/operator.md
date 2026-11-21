@@ -77,8 +77,11 @@ can attach to different ones.
 No IDs or session catalogue are stored by AIW. If the installed
 OpenShell/terminal does not render this interactive exec correctly,
 use **Open sandbox shell** and type `hermes --continue` inside; this
-was previously verified. Owner live validation of the new single-step
-bridge is still required.
+was previously verified. The **direct Hermes session resume** has been live-qualified: after a
+full Windows reboot and a separately approved sandbox start, the owner
+resumed the exact previous session ID. The later **one-step menu offer**
+to start a Stopped sandbox first has only offline mock/CI coverage and
+is a separate, optional operator acceptance check.
 
 **No AIW-owned sandbox registry, background supervisor, custom
 backup engine, automatic rebuild/destroy or network-policy bypass**
@@ -107,8 +110,9 @@ shell profiles. If another command already owns the name, it stops rather
 than overwriting it. Log in to a new shell so `~/.local/bin` is on PATH,
 or use `export PATH="$HOME/.local/bin:$PATH"`.
 
-The **Windows project**, once its launcher cutover is explicitly reviewed,
-provides two NemoClaw desktop icons: one opens a *real WSL Linux shell* in
+The **Windows project** provides two NemoClaw desktop icons through
+[merged PR #84](https://github.com/SomeSunlight/ai-workstation/pull/84).
+One opens a *real WSL Linux shell* in
 `~/ai-workstation-linux`, the other in `~`. Neither starts the menu
 automatically. Inside either shell, type `aiw` to open the menu.
 `q` returns to that Linux shell; type `exit` explicitly to close WSL.
@@ -124,8 +128,11 @@ Linux home path; in the observed Windows environment,
 wsl -d AIW-Nemo -u moresunlight --cd /home/moresunlight
 ```
 
-Do not switch the working production shortcut to the Linux candidate
-until both projects have passed the reviewed cutover gates.
+The operator has already used the **project penguin** to enter WSL
+and resume Hermes after Windows reboot. This qualifies the shell entry
+point, **not** the separate pinned production handoff still pending in
+[Windows PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85).
+Do not apply that remaining cutover implicitly.
 
 ## Windows restart: preflight before creating another Error sandbox
 
@@ -144,9 +151,9 @@ launching Hermes or resuming a conversation**, AIW verifies the upstream
 sandbox phase and the host address. If it is missing, AIW asks permission
 to run NVIDIA's exact bounded host preparation:
 
-`\`\`bash
+```bash
 sudo -- ip address replace 169.254.2.2/32 dev lo
-`\`\`
+```
 
 The operator explicitly approves a possible sudo password prompt;
 AIW then verifies the interface assignment. If it conflicts, cannot
@@ -184,13 +191,15 @@ way to create/configure Hermes and its OpenShell policies. It never
 destroys or rebuilds an existing sandbox. The systemd user Podman socket
 must pass the rootless/cgroups-v2/Netavark checks.
 
-The independent installer **has passed** a fresh WSL Ubuntu 26.04
-host trial on 2026-11-19: Ansible completed with zero failures,
-NemoClaw v0.0.144 was installed, and a subsequent independent
-`./install.sh verify` passed. Native bare-metal Ubuntu and a full
-new Hermes sandbox onboarding have **not** been tested. Do **not**
-run it on the existing working `AIW-Nemo` merely because this
-repository was cloned: follow the reviewed cutover plan instead.
+The independent installer **passed** a clean WSL Ubuntu 26.04
+host trial on 2026-11-19: Ansible completed without failures,
+NemoClaw v0.0.144 was installed, and `./install.sh verify` passed.
+**Native bare-metal Ubuntu remains untested.** Separately, the owner
+successfully used the existing `AIW-Nemo` environment to onboard
+a new `testhermes03` sandbox and qualify its Windows-reboot recovery;
+this does not qualify an end-to-end new Hermes sandbox onboarding
+*on the clean-room installation*. Do **not** run the host installer
+on existing working `AIW-Nemo` merely to update the source.
 
 ## Security and persistence
 
@@ -210,9 +219,12 @@ and the container exited 1. The concrete evidence and **bounded
 owner-approved recovery gate** are in
 [controlled recovery and restart qualification](restart-qualification.md).
 Do not treat `recover`, a host gateway restart or `podman network reload`
-as a proven repair of stale `HostConfig.ExtraHosts`. The full native
-Hermes ZIP has been encrypted off WSL, but **no in-place restore,
-application import or cold-reboot recovery test has yet passed**.
+as a proven repair of stale `HostConfig.ExtraHosts`. The full native Hermes ZIP has been encrypted off WSL; **no application
+import or in-place rescue of the two Error-phase sandboxes was tested**.
+A different sandbox, `testhermes03`, **did pass a complete Windows
+reboot**, explicit NVIDIA host-address restoration, `Ready` status
+and preserved Hermes conversation history. Do not conflate this
+successful restart with a verified ZIP restore or an automatic boot fix.
 
 A clean shutdown/restart is not a rebuild. Use upstream
 `status -> stop -> status -> start -> launch` **only after**
@@ -230,3 +242,26 @@ CRC-verified the official full Hermes ZIP and protected an encrypted
 copy on another Windows drive (2026-11-20; physical disk independence not verified). Never publish
 configuration, environment files, logs, credential archives or
 sensitive inventories.
+
+## Operational acceptance and deferred improvements (2026-11-22)
+
+- **Passed live:** owner used `testhermes03` with the pinned
+  NemoClaw/OpenShell stack; stopped it, restarted Windows, observed
+  the missing native-Podman host address, explicitly approved its
+  restoration, started the existing sandbox and resumed the **same
+  Hermes conversation**. The retained transcript does not separately
+  demonstrate a new, post-restart inference answer.
+- **Passed offline:** the latest PR #5 menu offers to start a
+  **Stopped** sandbox only when an agent action is requested and the
+  user explicitly approves. The already-qualified host preparation
+  runs before vendor start. This last UX convenience is **not** yet
+  separately live-tested; merge acceptance belongs to the owner.
+- **Follow-up, not a PR #5 blocker:** NVIDIA upstream fix and regression
+  test ([Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3)),
+  reviewed NemoClaw upgrade from current v0.0.144 pin,
+  Windows launcher revision warning/pinned handoff and the
+  missing `tirith` scanner observed inside Hermes.
+- **Design boundary:** a future multi-agent operator should reuse the
+  generic *selected sandbox readiness/start* step, while keeping
+  Hermes conversation handling an agent-specific adapter. No
+  parallel AIW sandbox/session registry is justified.
