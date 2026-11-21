@@ -200,6 +200,50 @@ hermes_sessions() {
     vendor_hermes "$sandbox" exec --tty --stdin -- hermes --resume "$session"
 }
 
+# Generic sandbox readiness gate for user-requested agent actions. This is
+# only a menu convenience: the existing vendor lifecycle stays authoritative.
+# No global "last used sandbox" record, background service, or implicit rebuild.
+operator_offer_sandbox_start() {
+    local sandbox="$1" purpose="$2" phase answer after
+    if ! phase="$(sandbox_phase "$sandbox")"; then
+        printf '[BLOCKED] Cannot determine %s phase; no sandbox action taken.\n' "$sandbox" >&2
+        return 1
+    fi
+    case "$phase" in
+        Ready) return 0 ;;
+        Stopped)
+            printf '\nSandbox %s is stopped. Its files and agent conversations are preserved.\n' "$sandbox"
+            printf 'Start this sandbox before %s? [y/N] ' "$purpose"
+            if ! IFS= read -r answer; then
+                printf '\nCancelled. Sandbox remains stopped.\n'
+                return 1
+            fi
+            case "$answer" in
+                y|Y|yes|YES) ;;
+                *) printf 'Cancelled. Sandbox remains stopped.\n'; return 1 ;;
+            esac
+            # Existing AIW start path checks the exact NVIDIA host alias,
+            # offers any sudo repair openly, then delegates to NemoClaw.
+            hermes_action start "$sandbox" || return 1
+            if ! after="$(sandbox_phase "$sandbox")"; then
+                printf '[BLOCKED] Could not verify sandbox readiness after start.\n' >&2
+                return 1
+            fi
+            if [[ "$after" != Ready ]]; then
+                printf '[BLOCKED] Sandbox startup returned phase %s, not Ready.\n' "$after" >&2
+                return 1
+            fi
+            printf '[OK] Sandbox %s is Ready; continuing with requested action.\n' "$sandbox"
+            ;;
+        Error|Failed)
+            printf '[BLOCKED] %s is in OpenShell %s; no restart or recovery attempted.\n' "$sandbox" "$phase" >&2
+            return 1 ;;
+        *)
+            printf '[BLOCKED] %s has phase %s; no implicit start attempted.\n' "$sandbox" "$phase" >&2
+            return 1 ;;
+    esac
+}
+
 operator_sandbox_menu() {
     local choice sandbox
     select_registered_sandbox || return 0
@@ -208,7 +252,7 @@ operator_sandbox_menu() {
         printf '\n--- Hermes sandbox: %s ---\n' "$sandbox"
         compact_sandbox_status "$sandbox" || printf '  Phase not verified.\n'
         printf ' 1) New Hermes conversation (does not create a sandbox)\n'
-        printf ' 2) Continue most recent conversation\n'
+        printf ' 2) Continue most recent conversation (offers to start if stopped)\n'
         printf ' 3) List/resume another conversation\n'
         printf ' 4) Start stopped sandbox (no conversation)\n'
         printf ' 5) Stop sandbox (preserve files and sessions)\n'
@@ -218,12 +262,20 @@ operator_sandbox_menu() {
         printf ' 0) Back to sandbox list\n'
         read -r -p 'Action: ' choice || return
         case "$choice" in
-            1) hermes_action launch "$sandbox" || printf 'Launch failed; see vendor diagnostics.\n' >&2 ;;
-            2) hermes_action resume "$sandbox" || printf 'Resume failed; previous sessions have not been deleted.\n' >&2 ;;
-            3) hermes_sessions "$sandbox" || printf 'Session operation failed.\n' >&2 ;;
+            1) if operator_offer_sandbox_start "$sandbox" "starting a new Hermes conversation"; then
+                   hermes_action launch "$sandbox" || printf 'Launch failed; see vendor diagnostics.\n' >&2
+               fi ;;
+            2) if operator_offer_sandbox_start "$sandbox" "continuing the most recent Hermes conversation"; then
+                   hermes_action resume "$sandbox" || printf 'Resume failed; previous sessions have not been deleted.\n' >&2
+               fi ;;
+            3) if operator_offer_sandbox_start "$sandbox" "listing Hermes conversations"; then
+                   hermes_sessions "$sandbox" || printf 'Session operation failed.\n' >&2
+               fi ;;
             4) hermes_action start "$sandbox" || : ;;
             5) hermes_action stop "$sandbox" || : ;;
-            6) connect "$sandbox" || printf 'Sandbox shell unavailable.\n' >&2 ;;
+            6) if operator_offer_sandbox_start "$sandbox" "opening its shell"; then
+                   connect "$sandbox" || printf 'Sandbox shell unavailable.\n' >&2
+               fi ;;
             7) hermes_action status "$sandbox" || : ;;
             8)
                 printf 'Recovery only after diagnosis; never use it for a sandbox in Error.\n'
