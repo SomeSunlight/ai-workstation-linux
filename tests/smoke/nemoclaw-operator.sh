@@ -169,11 +169,15 @@ fi
 smoke_step "Simulate missing approval: show actual safety messages; never invoke real sudo"
 # Every negative test explicitly has no stdin. Show the produced message
 # and check that no mock ever records a privileged or destructive action.
-printf '  Gateway address preparation without interactive approval:\n'
+printf '  Real interactive question: Restore that exact host address now (sudo required)? [y/N]\n'
+grep -Fq "read -r -p 'Restore that exact host address now (sudo required)? [y/N] '" "$ROOT/bin/aiw-operator-menu.sh"
+printf '  TEST input: no approval is supplied; expected result is refusal, not repair.\n'
 if FAKE_IP_STATE=missing invoke gateway prepare </dev/null > "$tmp/fail" 2>&1; then exit 1; fi
 show_mock_output "$tmp/fail"
 grep -Fq 'Interactive approval required' "$tmp/fail"
-printf '  Shared gateway stop without typing the required STOP confirmation:\n'
+printf '  Real interactive question: Type STOP to stop the shared gateway:\n'
+grep -Fq "read -r -p 'Type STOP to stop the shared gateway: '" "$ROOT/bin/aiw-operator-menu.sh"
+printf '  TEST input: no STOP confirmation is supplied; expected result is refusal.\n'
 if invoke gateway stop </dev/null > "$tmp/fail" 2>&1; then exit 1; fi
 show_mock_output "$tmp/fail"
 grep -Fq 'Interactive confirmation required' "$tmp/fail"
