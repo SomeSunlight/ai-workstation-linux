@@ -231,3 +231,52 @@ See the actual evidence in Windows [Issue #83](https://github.com/SomeSunlight/a
 Linux [Draft PR #1](https://github.com/SomeSunlight/ai-workstation-linux/pull/1),
 Windows [Draft PR #84](https://github.com/SomeSunlight/ai-workstation/pull/84),
 and the separately gated [Draft PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85).
+
+## November 21: controlled four-stage qualification and actual Windows failure
+
+**Evidence and source tracing are authoritative in
+[Linux Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3).**
+The first three successive controlled gates passed, including a
+complete termination of the dedicated WSL distribution. A full
+**Windows** restart after an orderly sandbox and user-gateway shutdown
+then reproduced the failure with a *second, independent sandbox*.
+
+Before Windows restart: `lo` had `169.254.2.2/32`, the Podman
+`openshell-docker` bridge was `10.89.0.0/24`, and its two sandbox
+host aliases mapped to `169.254.2.2`. After Windows restart:
+the gateway systemd user service and port-8080 listener were active,
+but `ip -o -4 addr show dev lo` showed only `127.0.0.1/8` and
+`10.255.255.254/32`; both persisted aliases still pointed at
+the **missing** `169.254.2.2`. Gateway logs show StartSandbox accepted
+and `Starting → Error` after ~61 s; container exit 1 and
+`Policy fetch failed after 5 attempts: failed to connect to OpenShell
+server`.
+
+At NemoClaw's exact v0.0.144 pin
+`82e1ad7474ec7175c5b860b2bfa9d7940bc6e75f`,
+`ensureNativePodmanGatewayHostAddress()` knows to call
+`sudo -- ip address replace 169.254.2.2/32 dev lo` during host
+preparation. The installed
+`nemoclaw-openshell-gateway.service` is identical to the upstream
+template, with **no drop-ins**; it generates TLS certificates and starts
+the gateway binary but does not prepare the network alias.
+Regular existing-sandbox start does not perform equivalent host
+preparation. **No post-repair successful retest has occurred**; the
+causal fix remains to be validated by the owner.
+
+The new
+[operator-first menu design](https://github.com/SomeSunlight/ai-workstation-linux/issues/4)
+adds a fail-closed startup guard and **explicit, consented** repair
+before vendor sandbox lifecycle operations, retaining existing
+upstream ownership. It intentionally has *no boot-persistent system
+service* and cannot protect someone running the raw `nemohermes`
+CLI instead of `aiw`. Error-phase sandboxes are blocked from repeated
+startup/recovery attempts. This is an owner-acceptance candidate, not a
+claim of a passing Windows reboot test.
+
+**Next live test:** New sandbox after explicitly preparing the missing
+address; basic Hermes interaction; clean stop; Windows restart; open
+AIW, confirm missing-address prompt is offered before any start, approve
+bounded sudo preparation, inspect the host route, start sandbox and
+resume chat, then inspect logs/status. Stop on the first unexpected
+error. **No automatic destroy** of the old Error-phase sandboxes.
