@@ -43,6 +43,22 @@ From the Windows penguin shortcut, enter WSL, type `aiw` and choose:
 4. **Advanced:** Host health, installer verification, network inventory,
    official NemoClaw help and *onboarding* resume (not chat resume).
 
+When a user selects **New conversation**, **Continue latest conversation**,
+**List other conversations**, or **Open sandbox shell** on a **Stopped** sandbox,
+the operator explains that the sandbox is not running and asks:
+
+```text
+Sandbox <name> is stopped. Its files and agent conversations are preserved.
+Start this sandbox before continuing the most recent Hermes conversation? [y/N]
+```
+
+Only an explicit yes starts that *selected* sandbox using the already
+qualified native-Podman host-address check and official upstream lifecycle.
+The subsequent Hermes/session action runs **only after** a fresh upstream
+status reports `Ready`. Declining changes nothing; `Error` and unknown
+phases never trigger an automatic restart. This is general sandbox
+preparation, separate from Hermes-specific conversation resume.
+
 An upstream status JSON gives the selected sandbox phase. **OpenShell
 `Error` is not `Stopped`**; the operator blocks attempts to start or
 recover it. Unknown phases block startup rather than guessing. The compact
