@@ -92,7 +92,8 @@ gateway_prepare_address() {
 # This guard is deliberately shared by both menu and direct 'aiw hermes ...'.
 # Never let a missing host prerequisite turn a stopped sandbox into Error.
 gateway_start_guard() {
-    check_runtime || return 1
+    # NemoClaw itself validates its Podman socket; this narrow guard only
+    # covers the host address absent from its existing-sandbox start path.
     gateway_prepare_address || return 1
     if ! systemctl --user is-active --quiet "$AIW_GATEWAY_SERVICE"; then
         printf '[BLOCKED] Shared OpenShell gateway is not active.\n' >&2
@@ -222,8 +223,7 @@ operator_sandbox_menu() {
             3) hermes_sessions "$sandbox" || printf 'Session operation failed.\n' >&2 ;;
             4) hermes_action start "$sandbox" || : ;;
             5) hermes_action stop "$sandbox" || : ;;
-            6) sandbox_action_guard connect "$sandbox" &&
-                   connect "$sandbox" || printf 'Sandbox shell unavailable.\n' >&2 ;;
+            6) connect "$sandbox" || printf 'Sandbox shell unavailable.\n' >&2 ;;
             7) hermes_action status "$sandbox" || : ;;
             8)
                 printf 'Recovery only after diagnosis; never use it for a sandbox in Error.\n'
