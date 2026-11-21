@@ -1,4 +1,37 @@
-# Linux extraction plan — Issue #78
+# AI Workstation Linux — development and acceptance plan
+
+## Current checkpoint (2026-11-22)
+
+**Baseline:** Linux extraction [PR #1](https://github.com/SomeSunlight/ai-workstation-linux/pull/1)
+and the Windows penguin launcher [PR #84](https://github.com/SomeSunlight/ai-workstation/pull/84)
+have been merged. The operator uses the real Linux `aiw` command from
+`AIW-Nemo`; vendor lifecycle and policy remain owned by NemoClaw/OpenShell.
+
+**Operator release:** [Draft PR #5](https://github.com/SomeSunlight/ai-workstation-linux/pull/5)
+addresses [Issue #4](https://github.com/SomeSunlight/ai-workstation-linux/issues/4).
+Its Windows-reboot host-alias preparation **passed** with a new
+`testhermes03` sandbox after a full Windows restart; the **same Hermes
+session was resumed**. The later *consent-to-start a Stopped sandbox
+when continuing a chat* is mock/CI-tested but lacks its own live test.
+No automatic Windows-start address restoration or already-`Error`
+sandbox rescue is claimed.
+
+**Before squash-merge:** updated plan/docs, exact-HEAD CI green and
+explicit owner approval. Do **not** merge the draft automatically.
+The owner's workflow remains pull → smoke test → accept → squash-merge.
+
+**After PR #5:** Focus on practical agent tooling
+([Issue #2](https://github.com/SomeSunlight/ai-workstation-linux/issues/2));
+a separately approved NemoClaw v0.0.145 upgrade; independent Windows
+pinned handoff ([Draft PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85));
+and a **separate** NVIDIA NemoClaw upstream issue/PR using the already
+recorded [reproduction and successful workaround](https://github.com/SomeSunlight/ai-workstation-linux/issues/3).
+The upstream work should verify the current vendor branch again before
+editing, and keep OpenShell under NemoClaw version ownership.
+Follow-up: Windows launcher revision warning and Hermes `tirith`
+scanner not available (not to be hidden).
+
+## Historical extraction milestones — Issue #78
 
 - [x] Repository initialized; development proceeds in a draft PR, never in deployed WSL.
 - [x] Linux-owned NemoClaw/Podman roles and vendor commit pins extracted.
@@ -27,14 +60,14 @@
 - [x] Owner confirms full official Hermes ZIP encrypted with installed GnuPG AES-256, and the decrypted byte-for-byte equality test succeeded; encrypted file stored on another Windows drive outside WSL (2026-11-20). The password is kept privately. This is application-data preservation; **restore/import not tested** and physical disk independence not established. No parallel AIW backup engine.
 - [x] Unexpected Windows/WSL reboot exposed a concrete Hermes restart failure: the stopped `testhermes01` sandbox's existing Podman `ExtraHosts` retained `169.254.2.2`, but a fresh disposable container resolved `169.254.1.2`; TCP to port 8080 succeeded only on the latter. Sandbox logs: `Policy fetch failed after 5 attempts`; exited 1, OOM=false. External Speedy inference host still resolved correctly and returned 401. Reproduction is recorded in Windows Issue #83 and `docs/restart-qualification.md`.
 - [x] Added Linux-native `aiw network` IP/route/bridge/Podman host-alias inventory to existing status and selected Hermes menus, restricted one-time JSON snapshot and before/after comparison; **no container startup on normal status**. Optional `--probe` uses a disposable cached-image no-mount container only when explicitly requested. Offline CI checks both paths.
-- [x] Added user-only, collision-protected `./install.sh register-cli` for `~/.local/bin/aiw`; Windows Draft PR #84 implements two penguin Linux shell entry points (project and home) instead of auto-running AIW. Both remain **not deployed on owner's laptop** and must be accepted together.
+- [x] Added user-only, collision-protected `./install.sh register-cli` for `~/.local/bin/aiw`; Windows [PR #84](https://github.com/SomeSunlight/ai-workstation/pull/84) has since **merged** and the owner successfully used its project penguin on the laptop to open WSL and AIW after a full Windows reboot.
 - [x] **Priority 1, bounded source-level recovery assessment:** the real ordinary `start` failed; inspected installed OpenShell 0.0.116's upstream sandbox CLI enum and found **no documented host-alias rebind** or guaranteed data-preserving in-place recovery command. `podman update` does not support rewriting persisted `HostConfig.ExtraHosts`. **Consciously stop** here without speculative repair; old `testhermes01` remains unchanged. A live in-place recovery has **not** succeeded. Revisit only when newer vendor versions expose supported correction or before a separately approved destructive migration.
-- [ ] **Priority 2, live user acceptance:** install/verify the Linux `aiw` alias, refresh two Windows penguins via `-Action Shortcuts`, test menu `q` returns to Linux, numbered sandbox selection and private IP summary; no background install or service mutation.
-- [ ] **Priority 3, only if safe recovery cannot be qualified:** create and test a *new named sandbox* with official onboarding while preserving the old one; selectively restore Hermes data from the verified native encrypted backup after inspecting import semantics. Retire `testhermes01` only after owner accepts the replacement.
-- [ ] **Priority 4, optional and budget-capped:** staged normal Hermes stop/start → official NemoClaw gateway stop/start → dedicated WSL restart → scheduled Windows reboot. Snapshot addresses before/after each gate; stop on the first failure. **Do not block real Hermes/Strata agent work** on full reboot qualification.
+- [x] **Priority 2, essential Linux operator acceptance:** the owner invoked `aiw` through the penguin Linux shell, selected a registered sandbox by number, inspected gateway/host-IP state and continued a Hermes session after Windows reboot. No additional WSL instance, supervisor or automatic service management was introduced. The separate Windows pinned handoff remains pending.
+- [x] **Priority 3, independent new sandbox:** the owner created and used `testhermes03` through official onboarding and preserved the two older `Error` sandboxes. **Not done and not required for this PR:** Hermes ZIP import, rehabilitation or deletion of `testhermes01`/`testhermes02`.
+- [x] **Priority 4, scoped reboot qualification:** sandbox, gateway and WSL termination/restart gates passed; the original full Windows restart exposed the missing Podman callback alias. A subsequent full Windows restart **passed** with explicit NVIDIA-equivalent host-IP repair *before* starting `testhermes03`; native Hermes conversation persisted. An automatic reboot-time vendor fix is still outstanding.
 - [ ] **Primary product value** after basic agent access: [Linux Issue #2](https://github.com/SomeSunlight/ai-workstation-linux/issues/2) captures an actual local Strata/Hermes technical task, secure browser/HTML5 visual preview, and minimal trusted toolchain; prior offline Canvas harness worked, browser-based preview was unavailable (Chromium/Playwright download 403). Do not block it on full WSL/Windows reboot certification. See `docs/restart-qualification.md`.
-- [x] Windows Draft PR #85 contains a candidate SHA pin and *opt-in read-only* version/status/verify adapter; offline Windows CI green. The production shortcut/installer cutover is still pending.
-- [ ] After owner approval, update Windows candidate pin to the **merged** Linux commit and switch the production bootstrap/shortcut via a separate tested cutover.
+- [x] Windows [Draft PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85) contains an *opt-in read-only* pinned version/status/verify adapter; it remains **open**, and the independent pinned production handoff is not merged. Windows PR #84 (penguin launcher) has merged.
+- [ ] After Linux PR #5 is **approved and merged**, update the Windows [PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85) candidate pin to the **merged Linux commit** and qualify the remaining independent cutover. Do not infer a Linux version from a Windows branch.
 - [ ] Owner-approved merges and retirement of the original monolithic Linux code.
 
 ## Post-Windows-restart operational UX — Issues #3 and #4
@@ -44,8 +77,18 @@
 - [x] Trace the exact pinned NVIDIA source: alias setup is part of effectful native-Podman host preparation but absent from the installed user-systemd gateway unit and normal existing-sandbox startup.
 - [x] Save a sanitized, standalone evidence dossier in [Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3), retaining uncertainty until a repaired Windows reboot succeeds.
 - [x] Implement draft [Issue #4](https://github.com/SomeSunlight/ai-workstation-linux/issues/4) operator cockpit: multi-sandbox selection, conversation vs sandbox lifecycle, shared gateway status, fail-closed host-alias guard, consented NVIDIA-equivalent preparation and scoped Node warning suppression.
-- [x] Earlier draft CI passed (two jobs), and owner accepted the live operator branch for a Windows-restart qualification. New menu follow-up still requires exact-head CI and optional live check before merge.
+- [x] Owner's transparent smoke test returned `[OK] AIW cockpit` and exit code 0 after the hidden-input bug was corrected; earlier exact-head CI ran green. Final PR documentation-only changes require a fresh final-head CI check.
 - [x] Owner live test (2026-11-21): new `testhermes03` sandbox, a persisted Hermes conversation, explicit sandbox stop, complete Windows reboot, missing host alias detected, approved sudo restoration, vendor start reached `Ready`, and the *same* Hermes session resumed. The log confirms a pre-restart agent answer; it does not independently show a newly generated post-restart answer.
-- [x] Usability follow-up: stopped sandbox now offers visible, explicit user consent to start before continuing an existing Hermes conversation or opening the shell; no global last-sandbox state or silent auto-start.
-- [ ] Plan a separately approved v0.0.144 → v0.0.145 vendor upgrade. The original Linux installer is pin-verifying and refuses in-place upgrades; the upstream installer may require backups of Error-phase sandboxes. Do not silently change the pin.
+- [x] Usability follow-up implemented with mock-backed smoke coverage: stopped sandbox offers visible consent to start before a chat or shell, checks host address and fresh `Ready`, and never silently starts. **Separate live confirmation not yet recorded.**
+- [ ] Separately approve and qualify NemoClaw v0.0.144 → v0.0.145 (or a re-verified newer release) upgrade. The Linux installer checks exact pins and is **not an in-place upgrade command**; review any vendor backup/cleanup impact on older Error-phase sandboxes. Do not silently change the pin.
 - [ ] After live acceptance, prepare an NVIDIA **NemoClaw** (not OpenClaw) issue or PR and a narrow before/after regression test in a separate conversation.
+
+## Squash-merge checklist — Draft PR #5
+
+- [x] Vendor root-cause review and sanitized evidence captured in Issue #3.
+- [x] Real `testhermes03` cold Windows-restart recovery and preserved Hermes conversation observed.
+- [x] New menu/safety contracts covered by transparent offline smoke tests (including consent to start a Stopped sandbox).
+- [x] Operator/README/restart instructions updated to distinguish old incident from successful manual recovery.
+- [ ] Final PR **exact-head** CI fully green after final documentation changes.
+- [ ] Owner accepts PR #5 and initiates squash-merge; no automatic merge here.
+- [ ] Post-merge: verify `main` revision and handoff the Windows pin only through the separate Windows draft PR.
