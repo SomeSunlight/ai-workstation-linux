@@ -24,7 +24,7 @@
 
 - name: Read NVIDIA-installed NemoClaw CLI build identity
   ansible.builtin.slurp:
-    src: "{{ ai_workstation_home }}/.nemoclaw/source/dist/build-identity.json"
+    src: "{{ nemoclaw_host_source_dir }}/dist/build-identity.json"
   register: nemoclaw_host_verify_build_identity
 
 - name: Ensure installed vendor build matches pinned checkout and receipt
