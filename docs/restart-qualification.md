@@ -303,11 +303,13 @@ CLI instead of `aiw`. Error-phase sandboxes are blocked from repeated
 startup/recovery attempts. The **Windows-reboot recovery test passed on the owner's actual host**,
 but only after explicitly approved address preparation.
 The later user-convenience option to **offer starting a Stopped
-sandbox before resuming its conversation** has passed mocked CI and
-has **not** undergone separate live acceptance.
+sandbox before resuming its conversation** has passed mocked CI and,
+per owner confirmation on **2026-11-22**, the final **`Continue most
+recent conversation`** workflow was also successfully tested live.
 
 **Remaining work:** Owner approval for Draft PR #5; separately reviewed
 NemoClaw upgrade and upstream issue/PR with a focused regression test
 ([Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3));
-optional live trial of the new consent-to-start interaction.
+the consent-to-start conversation workflow is owner-accepted; no
+additional reboot test is required for the PR #5 merge.
 No automatic destruction of the old Error-phase sandboxes.
