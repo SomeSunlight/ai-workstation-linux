@@ -19,6 +19,39 @@ No standalone OpenShell version bump, source fork, or `curl | bash` is involved.
 - Source pin, installed AIW receipt, exact checkout revision, and NVIDIA
   generated CLI build identity must agree for `verify` to pass.
 
+## Owner acceptance after real installation and Windows restart (2026-11-23)
+
+- Windows installed **only** the named fresh distro, and the pinned Linux
+  verifier confirmed rootless Podman and NVIDIA CLI v0.0.145 without
+  reinstalling a valid existing vendor receipt.
+- The Windows onboarding wrapper initially forgot to pass `--no-gpu`
+  and tripped NVIDIA's Container Toolkit readiness check, despite using
+  remote OpenRouter inference. The Windows wrapper now delegates to this
+  repository's `aiw-nemo onboard`, which already enforces
+  `NEMOCLAW_GATEWAY_RUNTIME=podman` and `--no-gpu`.
+- The interrupted NVIDIA session required a *manual*, explicitly named
+  resume because it had no sandbox identity checkpoint:
+  `./bin/aiw-nemo onboard --resume --name testhermes04`. This is
+  **onboarding** resume, not Hermes chat resume. The owner completed it
+  successfully.
+- The owner's **full Windows reboot without first stopping** `testhermes04`
+  left the same sandbox identity and workspace intact, phase `Stopped`,
+  with systemd user gateway and rootless Podman socket active. The host
+  loopback address `169.254.2.2/32` was again **missing**. AIW's
+  confirmation-gated repair and supported sandbox start returned the
+  existing Hermes to service; the owner subsequently got a model answer.
+  Do not claim that the NVIDIA auto-boot defect is fixed or that
+  intentional hard-WSL-crash recovery was qualified.
+- Verified OpenShell egress isolation: the agent could use its intended
+  model route, but requests to tested outside news sites met proxy
+  denials. This is a policy/tooling concern for a **separate task**, not
+  a reason to open the whole sandbox network.
+- The accepted *source checkout* is the Linux PR #7 commit, but the
+  **Windows production pin must refer to the new Linux main squash
+  SHA** after this PR is owner merged. Do not pin to a moving branch,
+  upgrade historical sandboxes, delete existing distros, or promote
+  these local runbook notes into an auto-recovery daemon.
+
 ## Inventory and stop gates (owner observed, 2026-11-22)
 
 | WSL name | Observed identity | Policy |
@@ -26,7 +59,7 @@ No standalone OpenShell version bump, source fork, or `curl | bash` is involved.
 | `Ubuntu-24.04` | Productive WSL (owner) | **Never touch** |
 | `Ubuntu-26.04` | Internally `VERSION_ID=24.04`; historical AIW/Goose projects, backups and files | **Do not reuse or delete without separate inspection and approval** |
 | `AIW-Nemo` | Existing v0.0.144, old `testhermes02` error | **Retain until new install accepted** |
-| `AIW-Nemo-New` | Actual fresh Ubuntu 26.04; NemoClaw CLI 0.0.145 installed; full host verification pending fix | **Preserve; resume via Windows AIW** |
+| `AIW-Nemo-New` | Actual Ubuntu 26.04; v0.0.145 CLI/host verification passed; `testhermes04` running again after full Windows restart and interactive gateway-address repair | **Accepted, preserve data** |
 
 WSL names do not establish the guest OS version. `wsl --list --verbose` and
 `/etc/os-release` must agree with operator expectations before host install.
