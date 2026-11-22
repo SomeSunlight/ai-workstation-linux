@@ -93,7 +93,7 @@ check_receipt() {
     [[ -d "$source_dir/.git" ]] || fail 'NemoClaw source checkout missing.'
     [[ "$(git -C "$source_dir" rev-parse HEAD)" == "$pinned" ]] ||
         fail 'NemoClaw source checkout differs from reviewed vendor pin.'
-    local build_identity="$HOME/.nemoclaw/source/dist/build-identity.json"
+    local build_identity="$source_dir/dist/build-identity.json"
     [[ -r "$build_identity" ]] || fail 'Official NemoClaw build identity missing; cannot verify installed CLI.'
     python3 - "$build_identity" "$pinned" <<'PY'
 import json
