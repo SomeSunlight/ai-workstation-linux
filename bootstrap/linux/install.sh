@@ -95,7 +95,7 @@ check_receipt() {
         fail 'NemoClaw source checkout differs from reviewed vendor pin.'
     local build_identity="$source_dir/dist/build-identity.json"
     [[ -r "$build_identity" ]] || fail 'Official NemoClaw build identity missing; cannot verify installed CLI.'
-    python3 - "$build_identity" "$pinned" <<'PY'
+    python3 - "$build_identity" "$pinned" <<'PY' || fail 'NemoClaw build identity is inconsistent with the reviewed pin.'
 import json
 import sys
 try:
