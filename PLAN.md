@@ -12,7 +12,7 @@ addresses [Issue #4](https://github.com/SomeSunlight/ai-workstation-linux/issues
 Its Windows-reboot host-alias preparation **passed** with a new
 `testhermes03` sandbox after a full Windows restart; the **same Hermes
 session was resumed**. The later *consent-to-start a Stopped sandbox
-when continuing a chat* is mock/CI-tested but lacks its own live test.
+when continuing a chat* has now also **passed owner-reported live testing** (2026-11-22).
 No automatic Windows-start address restoration or already-`Error`
 sandbox rescue is claimed.
 
@@ -79,7 +79,7 @@ scanner not available (not to be hidden).
 - [x] Implement draft [Issue #4](https://github.com/SomeSunlight/ai-workstation-linux/issues/4) operator cockpit: multi-sandbox selection, conversation vs sandbox lifecycle, shared gateway status, fail-closed host-alias guard, consented NVIDIA-equivalent preparation and scoped Node warning suppression.
 - [x] Owner's transparent smoke test returned `[OK] AIW cockpit` and exit code 0 after the hidden-input bug was corrected; source/CI validation has run successfully on the updated draft. The merge gate remains **final-head CI green**.
 - [x] Owner live test (2026-11-21): new `testhermes03` sandbox, a persisted Hermes conversation, explicit sandbox stop, complete Windows reboot, missing host alias detected, approved sudo restoration, vendor start reached `Ready`, and the *same* Hermes session resumed. The log confirms a pre-restart agent answer; it does not independently show a newly generated post-restart answer.
-- [x] Usability follow-up implemented with mock-backed smoke coverage: stopped sandbox offers visible consent to start before a chat or shell, checks host address and fresh `Ready`, and never silently starts. **Separate live confirmation not yet recorded.**
+- [x] Usability follow-up **accepted in live use (owner report, 2026-11-22)**: selecting `Continue most recent conversation` successfully resumes Hermes through the new menu. When the selected sandbox is `Stopped`, the code offers explicit consent to start it, reuses the preflight and verifies `Ready`. Smoke tests also cover approval/decline and unsafe phases; no silent startup.
 - [ ] Separately approve and qualify NemoClaw v0.0.144 → v0.0.145 (or a re-verified newer release) upgrade. The Linux installer checks exact pins and is **not an in-place upgrade command**; review any vendor backup/cleanup impact on older Error-phase sandboxes. Do not silently change the pin.
 - [ ] After live acceptance, prepare an NVIDIA **NemoClaw** (not OpenClaw) issue or PR and a narrow before/after regression test in a separate conversation.
 
@@ -88,6 +88,7 @@ scanner not available (not to be hidden).
 - [x] Vendor root-cause review and sanitized evidence captured in Issue #3.
 - [x] Real `testhermes03` cold Windows-restart recovery and preserved Hermes conversation observed.
 - [x] New menu/safety contracts covered by transparent offline smoke tests (including consent to start a Stopped sandbox).
+- [x] Owner reports **successful live test of `Continue most recent conversation`** after the final UX improvement (2026-11-22); remaining operator acceptance gap closed.
 - [x] Operator/README/restart instructions updated to distinguish old incident from successful manual recovery.
 - [x] PR #5 **exact-head** CI green after documentation reconciliation (both Linux source/operator and Ansible-contract jobs; revalidate the very final commit in the PR checks).
 - [ ] Owner accepts PR #5 and initiates squash-merge; no automatic merge here.
