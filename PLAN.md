@@ -1,5 +1,49 @@
 # AI Workstation Linux — development and acceptance plan
 
+## Live acceptance and merge handoff (2026-11-23)
+
+**Fresh deployment: owner ACCEPTED.** Windows AIW Draft PR #85 installed
+**only** `AIW-Nemo-New` with actual Ubuntu 26.04, rootless Podman,
+official NVIDIA NemoClaw v0.0.145 and OpenShell 0.0.116.
+The corrected Linux verifier passed, and `aiw` was registered.
+After a first-run NVIDIA preflight was blocked by an omitted `--no-gpu`
+in the *Windows* launcher, Windows now invokes this Linux project's
+pre-existing CPU-only `aiw-nemo onboard` instead. NVIDIA resume needed
+the explicit sandbox name because the original failed before creating
+sandbox identity; owner successfully completed onboarding as
+`testhermes04`, with working Hermes and OpenRouter inference.
+
+**Full Windows reboot while `testhermes04` was running: PASS with
+explicit manual network repair.** The same sandbox survived as `Stopped`
+with its workspace preserved; user systemd OpenShell gateway remained
+active and Podman socket available. The vendor-required
+`169.254.2.2/32` loopback alias was missing after reboot *again*,
+including with NemoClaw v0.0.145. AIW's guarded, consented host-address
+preparation allowed the existing sandbox to start; owner confirmed Hermes
+returned to service and produced a new model-based answer. This validates
+the no-prior-stop Windows reboot case on this host, **not** abrupt WSL
+power-loss/corruption recovery, automatic boot repair or the old
+`Error` sandboxes' restoration.
+
+**Release order:** first owner squash-merges
+[Linux PR #7](https://github.com/SomeSunlight/ai-workstation-linux/pull/7)
+after exact-head green CI. Obtain the resulting Linux `main` squash
+SHA, then repin the Windows manifest in
+[Windows PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85),
+run exact-head Windows CI, and only then squash-merge Windows.
+Protect `Ubuntu-24.04`, misnamed `Ubuntu-26.04`, and `AIW-Nemo`;
+no distro cleanup, provider migration, sandbox rebuild, or forced update
+is part of these merges. Native bare-metal Ubuntu is still untested.
+
+**Separated follow-ups:** [Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3)
+is the evidence base for a short, factual NVIDIA NemoClaw upstream bug
+report and focused regression, to be researched and drafted in a separate
+conversation; do not publish without owner approval. [Issue #2](https://github.com/SomeSunlight/ai-workstation-linux/issues/2)
+tracks improving actual agent capabilities, including controlled web
+access and browser/HTML preview. Sandbox proxy blocking arbitrary
+external sites while OpenRouter inference works is expected isolation,
+not an outage to bypass.
+
 ## Current checkpoint (2026-11-22)
 
 **Baseline:** Linux extraction [PR #1](https://github.com/SomeSunlight/ai-workstation-linux/pull/1)
