@@ -80,8 +80,10 @@ use **Open sandbox shell** and type `hermes --continue` inside; this
 was previously verified. The **direct Hermes session resume** has been live-qualified: after a
 full Windows reboot and a separately approved sandbox start, the owner
 resumed the exact previous session ID. The later **one-step menu offer**
-to start a Stopped sandbox first has only offline mock/CI coverage and
-is a separate, optional operator acceptance check.
+to start a Stopped sandbox first now has both offline mock/CI coverage
+and a **successful owner-reported live test of `Continue most recent
+conversation`** (2026-11-22). No new vendor or AIW session registry
+is involved.
 
 **No AIW-owned sandbox registry, background supervisor, custom
 backup engine, automatic rebuild/destroy or network-policy bypass**
@@ -251,11 +253,13 @@ sensitive inventories.
   restoration, started the existing sandbox and resumed the **same
   Hermes conversation**. The retained transcript does not separately
   demonstrate a new, post-restart inference answer.
-- **Passed offline:** the latest PR #5 menu offers to start a
-  **Stopped** sandbox only when an agent action is requested and the
-  user explicitly approves. The already-qualified host preparation
-  runs before vendor start. This last UX convenience is **not** yet
-  separately live-tested; merge acceptance belongs to the owner.
+- **Passed live (owner report, 2026-11-22):** the final PR #5
+  `Continue most recent conversation` workflow was used successfully.
+  Its generic sandbox-readiness helper offers to start a **Stopped**
+  sandbox only on explicit approval, reuses NVIDIA's host preflight,
+  checks fresh upstream `Ready`, and then invokes the agent action.
+  Offline tests cover declined approval, missing host alias and Error
+  phase. No automatic background startup or additional registry.
 - **Follow-up, not a PR #5 blocker:** NVIDIA upstream fix and regression
   test ([Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3)),
   reviewed NemoClaw upgrade from current v0.0.144 pin,
