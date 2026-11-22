@@ -10,18 +10,31 @@ entrypoint. **NemoClaw/OpenShell remain the sole owners of sandbox, session,
 credential, provider and policy management.** No competing AIW supervisor
 or sandbox inventory is introduced.
 
-## Current development status
+## Current development status — 2026-11-22
 
-**Migration candidate, not an approved deployment.** Extraction follows
-[Issue #78](https://github.com/SomeSunlight/ai-workstation/issues/78).
-Development takes place in a draft PR on
-`feat/78-linux-bootstrap-extraction`, not on `main`.
+The independent Linux repository's initial extraction
+([PR #1](https://github.com/SomeSunlight/ai-workstation-linux/pull/1))
+is **merged**. This repository provides the Ubuntu 26.04 host installer,
+rootless Podman/NemoClaw pins, the separate `aiw` CLI, verification
+and offline tests. Linux
+[Draft PR #5](https://github.com/SomeSunlight/ai-workstation-linux/pull/5)
+contains the new operator-first cockpit and interactive reboot
+preflight, pending **owner approval and squash-merge**.
 
-This repository already contains the extracted Ubuntu 26.04 Ansible
-roles, exact NemoClaw vendor commit and Podman version pins, a standalone
-Linux installer, a read-only verifier, an offline Git-aware version
-display, and focused contract tests. The existing `AIW-Nemo` distro
-and `testhermes01` sandbox have **not** been changed.
+The operator has **already exercised the candidate on the actual
+`AIW-Nemo` distro** with a new `testhermes03` sandbox. It passed
+a complete Windows reboot followed by explicit restoration of
+NVIDIA's missing host-loopback address, upstream sandbox startup
+and continuation of the **same Hermes session**. The further
+convenience change to offer sandbox startup when a user selects
+“Continue conversation” was added *after* that reboot test. It has
+since **passed a separate owner-reported live test (2026-11-22)**, in
+addition to offline CI coverage.
+Windows [PR #84](https://github.com/SomeSunlight/ai-workstation/pull/84)
+(the penguin shell launcher) is **merged**; the independent pinned
+Windows/Linux handoff [PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85)
+remains **draft**. A working penguin is not proof that the entire
+cross-repository production cutover is complete.
 
 ## Linux entrypoints
 
@@ -33,6 +46,7 @@ bash bin/aiw-nemo             # menu; read status before changing a sandbox
 ./install.sh register-cli     # once, as current Linux user (no sudo)
 aiw                           # explicit menu; q returns to Linux shell
 aiw network                   # read-only IP/Podman/OpenShell status
+aiw gateway status            # show shared gateway and reboot-sensitive host alias
 ```
 
 `status`, `verify` and `--version` make no package, host, sandbox or
@@ -46,19 +60,43 @@ Start with [Operator guide](docs/operator.md) and
 change upstream credentials, or replace the old WSL installation
 merely to update the Linux source.
 
-The owner has verified an official **full** Hermes backup and a
-GnuPG-encrypted copy outside WSL (2026-11-20). After an unexpected
-Windows reboot, the original stopped sandbox could not fetch its
-OpenShell policies because its saved Podman host-gateway alias no longer
-matched the reachable alias. No data-destructive repair is attempted
-automatically. The tested Linux CLI can record private before/after
-network snapshots and perform a *separately approved disposable*
-connection probe. See the
-[bounded recovery and restart playbook](docs/restart-qualification.md).
-Learning Hermes and improving secure browser/HTML preview is tracked
-in [Issue #2](https://github.com/SomeSunlight/ai-workstation-linux/issues/2);
-full Windows reboot certification is **not** a precondition for real
-agent experimentation.
+**Operator workflow:** Open a NemoClaw WSL penguin, type `aiw`, choose
+**My Hermes sandboxes**, select a sandbox by number, and choose
+**New chat**, **Continue last chat**, **Start sandbox** or **Stop sandbox**.
+A sandbox's model/provider is recorded by NemoClaw, not AIW; different
+sandboxes can use local Strata or OpenRouter and different upstream
+policies. Each chat is inside one existing sandbox. The shared gateway
+is a separate service; `q` exits only the menu, not Linux or Hermes'
+background gateway.
+
+**App-first navigation:** Choosing **Continue most recent conversation**
+on a stopped sandbox now offers an explicit **start this sandbox first?**
+confirmation, then runs the normal safety preflight and resumes the agent
+only after upstream reports `Ready`. No automatic start is performed on
+menu entry and no global `last sandbox` registry is introduced. That
+readiness interaction is generic enough for future agents; Hermes session
+resumption remains its own adapter.
+
+**Windows reboot protection (Linux Issue #3):** NVIDIA's native
+Podman alias `169.254.2.2/32` disappeared after a full Windows reboot
+while the gateway service remained active. A sandbox then repeatedly
+failed to fetch its policy and entered OpenShell `Error`. The AIW
+operator now checks this exact host prerequisite **before** starting a
+stopped sandbox or launching/resuming a chat. If it is missing, it asks
+for explicit permission to re-establish NVIDIA's address with `sudo`
+and verifies the result. It does not rescue already-`Error` sandboxes,
+change OpenShell versions or alter Podman container metadata. The **full Windows reboot and manual repair have been live-tested** with
+`testhermes03`; the later conversation-resume menu improvement has
+also been successfully tested by the owner (2026-11-22). See
+[the evidence and upstream handoff](https://github.com/SomeSunlight/ai-workstation-linux/issues/3)
+and [operator guide](docs/operator.md).
+
+The owner has previously verified a native encrypted Hermes backup
+outside WSL, but no import test. NemoClaw v0.0.145 (2026-11-18) is newer than the pinned v0.0.144;
+**`./install.sh install` is not a supported upgrade shortcut**.
+Version changes need a separate, explicit vendor-compatible operation.
+Hermes browser/HTML preview and local Strata are tracked by
+[Issue #2](https://github.com/SomeSunlight/ai-workstation-linux/issues/2).
 
 ## Architecture
 

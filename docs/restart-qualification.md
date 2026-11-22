@@ -1,10 +1,17 @@
 # Controlled Hermes recovery and restart qualification
 
-**Status: procedure prepared, NOT executed on the owner's host (2026-11-20).**
-The owner prioritizes learning Hermes and making its tooling useful for
-real tasks with local Strata/Dispatcher inference. WSL/Windows reboot
-robustness is a desirable later qualification, not a gate that justifies
-weeks of speculative Podman or OpenShell debugging.
+**Status (2026-11-22): Windows-reboot recovery WORKED on the owner's
+real `testhermes03` sandbox.** The NVIDIA host-loopback alias was
+missing after reboot and was restored **only after the operator explicitly
+approved the sudo operation**. The existing sandbox returned to
+`Ready`, and Hermes resumed the **same saved conversation**. This is a
+passed *manual recovery qualification*, **not** an automatic
+NemoClaw boot fix or an in-place rescue of earlier Error sandboxes.
+
+Historical investigation and recovery gates below are retained for
+forensic context. Their original uncertainty is superseded by the
+**November 21 owner acceptance** section at the end and
+[Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3).
 
 This is a short *operator playbook*, not a new AIW lifecycle engine.
 AIW reads the vendor configuration, delegates all lifecycle operations
@@ -59,10 +66,11 @@ or entire WSL image backup, and not a completed import test.
 Never print private URLs, raw policy logs, credentials or backup
 contents into CI, GitHub issues or public PR descriptions.
 
-## Priority 1: one bounded vendor-supported recovery attempt
+## Historical Priority 1: bounded in-place recovery of the original Error sandbox
 
 1. Read the current named-sandbox status and host mappings through
-   `aiw` option 7, or `aiw network --sandbox testhermes01`.
+   the current `aiw` **My Hermes sandboxes** menu, or
+   `aiw network --sandbox testhermes01`.
    Capture one restricted baseline snapshot (examples below).
 2. Check the **installed** NemoClaw/OpenShell help and the exact pinned
    upstream semantics for a *supported*, reversible in-place
@@ -98,21 +106,22 @@ This does *not* claim that an undocumented repair is impossible or
 that later upstream releases cannot fix it; it deliberately avoids
 unsupported, persistent-container surgery.
 
-## Priority 2: complete predictable AIW entry points
+## Completed Priority 2: predictable AIW entry points
 
-**Windows PR #84** defines two AIW-owned penguins for `AIW-Nemo`.
+**Merged Windows PR #84** defines two AIW-owned penguins for `AIW-Nemo`.
 The project penguin opens a real Linux login shell in
 `/home/<user>/ai-workstation-linux`; the home penguin opens it in
 `/home/<user>`. Neither auto-starts a menu. Inside either terminal,
 `aiw` explicitly opens the Linux menu, and `q` returns to the **Linux
 shell**, not PowerShell.
 
-**Linux PR #1** introduces `./install.sh register-cli` (user-only,
-no sudo, collision-safe), which creates `~/.local/bin/aiw`. Use it
-before refreshing the Windows shortcuts. A separate Windows
-read-only handoff PR #85 remains an **independent, pinned version
-cutover**; it must not auto-update Linux source, change other WSL
-distros or install services.
+**Merged Linux PR #1** introduced `./install.sh register-cli` (user-only,
+no sudo, collision-safe), which creates `~/.local/bin/aiw`.
+The owner has already used the penguin → Linux shell → `aiw` path
+after a full Windows reboot. The separate Windows
+[Draft PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85)
+still owns the **independent, pinned version cutover**; it must
+not auto-update Linux source or change unrelated WSL distros/services.
 
 The standard status action now includes a read-only network summary.
 A selected Hermes sandbox also gets its saved Podman host aliases.
@@ -164,12 +173,13 @@ are *not* recorded; values unavailable from the published metadata
 are marked unknown. These are **private** user files at mode 0600.
 Do not add them to Git or upload them into a chat.
 
-## Priority 3: new sandbox if recovery cannot be qualified
+## Completed Priority 3 (without data import): independent new sandbox
 
-Do **not** destroy `testhermes01` first. Deliberately create an
-independent replacement through **official NemoClaw onboarding**
-under a **different name** after checking its required credentials
-and precise host/provider policy. Reuse no raw tokens from notes or
+The owner **created and tested** `testhermes03` through official
+NemoClaw onboarding, while leaving `testhermes01` and `testhermes02`
+untouched. The original non-destructive procedure was: create an
+independent sandbox under a **different name**, checking its required
+credentials and precise host/provider policy. Reuse no raw tokens from notes or
 a public issue. Test a simple local inference interaction, then use
 the supported `hermes import` only for appropriately scoped native
 application data (this may replace application configuration; read
@@ -181,12 +191,13 @@ After owner acceptance, consider retiring the old sandbox by its
 **exact registered name** using upstream tools and explicit
 destructive confirmation. No AIW auto-destroy.
 
-## Priority 4: controlled restart qualification, one gate at a time
+## Completed Priority 4: controlled restart qualification
 
-Stop when a gate fails; do **not** treat later gates as required for
-Hermes productivity. Obtain baseline IP snapshots and status before
-each gate, and compare to after. Confirm preserved Hermes files and
-the local model request with minimal tests.
+The owner **completed all four gates**, one at a time. The original
+Windows-reboot attempt revealed the defect, while a subsequent
+full Windows reboot followed by the AIW consented host-address
+preflight **passed**, including Hermes session persistence.
+The historical qualification sequence remains below for reuse.
 
 1. **Hermes only**: exit interactive chat, stop the specific sandbox,
    verify stopped, start it and reattach. Distinguish chat exit,
@@ -228,6 +239,77 @@ rebuilding sandbox orchestration:
   AIW session/backup/policy registries and overlong admin menus.
 
 See the actual evidence in Windows [Issue #83](https://github.com/SomeSunlight/ai-workstation/issues/83),
-Linux [Draft PR #1](https://github.com/SomeSunlight/ai-workstation-linux/pull/1),
-Windows [Draft PR #84](https://github.com/SomeSunlight/ai-workstation/pull/84),
-and the separately gated [Draft PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85).
+Linux [merged PR #1](https://github.com/SomeSunlight/ai-workstation-linux/pull/1),
+Windows [merged PR #84](https://github.com/SomeSunlight/ai-workstation/pull/84),
+[current Linux Draft PR #5](https://github.com/SomeSunlight/ai-workstation-linux/pull/5),
+and separately gated Windows [Draft PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85).
+
+## November 21: controlled four-stage qualification and actual Windows failure
+
+**Evidence and source tracing are authoritative in
+[Linux Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3).**
+The first three successive controlled gates passed, including a
+complete termination of the dedicated WSL distribution. A full
+**Windows** restart after an orderly sandbox and user-gateway shutdown
+then reproduced the failure with a *second, independent sandbox*.
+
+Before Windows restart: `lo` had `169.254.2.2/32`, the Podman
+`openshell-docker` bridge was `10.89.0.0/24`, and its two sandbox
+host aliases mapped to `169.254.2.2`. After Windows restart:
+the gateway systemd user service and port-8080 listener were active,
+but `ip -o -4 addr show dev lo` showed only `127.0.0.1/8` and
+`10.255.255.254/32`; both persisted aliases still pointed at
+the **missing** `169.254.2.2`. Gateway logs show StartSandbox accepted
+and `Starting → Error` after ~61 s; container exit 1 and
+`Policy fetch failed after 5 attempts: failed to connect to OpenShell
+server`.
+
+At NemoClaw's exact v0.0.144 pin
+`82e1ad7474ec7175c5b860b2bfa9d7940bc6e75f`,
+`ensureNativePodmanGatewayHostAddress()` knows to call
+`sudo -- ip address replace 169.254.2.2/32 dev lo` during host
+preparation. The installed
+`nemoclaw-openshell-gateway.service` is identical to the upstream
+template, with **no drop-ins**; it generates TLS certificates and starts
+the gateway binary but does not prepare the network alias.
+Regular existing-sandbox start does not perform equivalent host
+preparation. **Post-repair reboot qualification succeeded (2026-11-21):** The owner
+created `testhermes03`, ran a Hermes conversation, exited with `/quit`,
+explicitly stopped only the sandbox and rebooted Windows without terminating
+WSL manually. On re-entering AIW, the shared OpenShell gateway and Podman
+socket were active, `169.254.2.2/32` was again missing, and the sandbox
+was `Stopped`. AIW requested permission to run the NVIDIA address repair;
+the owner approved via `sudo`. The command verified the address,
+`nemohermes <name> start` then reported `Ready`, and Hermes **resumed
+the exact previous session ID**, demonstrating preserved user conversation
+state after full Windows reboot. No automatic repair at Windows startup was
+claimed: the repair happens **interactively before the next AIW action**.
+No existing Error-phase sandbox was resurrected. See
+[Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3).
+
+**Usability follow-up:** A request to resume a session while the sandbox is
+Stopped originally failed with a generic `[BLOCKED]` message. The current
+Draft PR #5 now offers an explicit start of that selected sandbox before
+carrying out the requested Hermes action, reusing the proven reboot
+network guard, and verifies `Ready` after start.
+
+The new
+[operator-first menu design](https://github.com/SomeSunlight/ai-workstation-linux/issues/4)
+adds a fail-closed startup guard and **explicit, consented** repair
+before vendor sandbox lifecycle operations, retaining existing
+upstream ownership. It intentionally has *no boot-persistent system
+service* and cannot protect someone running the raw `nemohermes`
+CLI instead of `aiw`. Error-phase sandboxes are blocked from repeated
+startup/recovery attempts. The **Windows-reboot recovery test passed on the owner's actual host**,
+but only after explicitly approved address preparation.
+The later user-convenience option to **offer starting a Stopped
+sandbox before resuming its conversation** has passed mocked CI and,
+per owner confirmation on **2026-11-22**, the final **`Continue most
+recent conversation`** workflow was also successfully tested live.
+
+**Remaining work:** Owner approval for Draft PR #5; separately reviewed
+NemoClaw upgrade and upstream issue/PR with a focused regression test
+([Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3));
+the consent-to-start conversation workflow is owner-accepted; no
+additional reboot test is required for the PR #5 merge.
+No automatic destruction of the old Error-phase sandboxes.

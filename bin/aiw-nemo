@@ -8,6 +8,8 @@ export NEMOCLAW_NO_EXPRESS=1
 # This selection is essential. Without it, NemoClaw defaults to Docker and
 # rejects native Docker on WSL even when Podman is installed.
 export NEMOCLAW_GATEWAY_RUNTIME=podman
+# Operator functions provide the reboot guard and compact multi-sandbox UI.
+source "$ROOT/bin/aiw-operator-menu.sh"
 
 # Local, offline execution identity. The Git revision, not the release label,
 # identifies the exact development code running inside this Linux distro.
@@ -71,10 +73,10 @@ status() {
         printf 'Podman is not installed.\n'
     fi
     if command -v nemohermes >/dev/null 2>&1; then
-        nemohermes --version || true
-        printf 'NemoClaw manages sandbox status: use option 3 for its native CLI.\n'
+        vendor_hermes --version || true
+        printf 'NemoClaw owns sandbox state; choose My Hermes sandboxes to inspect it.\n'
     else
-        printf 'NemoClaw Hermes CLI not yet installed. Choose option 2 after installation.\n'
+        printf 'NemoClaw Hermes CLI not installed; use the explicit Linux host installer first.\n'
     fi
     printf '\n=== Network addresses (snapshot only; no container started) ===\n'
     network_check || printf '[WARN] Network snapshot unavailable; no repair attempted.\n' >&2
@@ -94,7 +96,7 @@ onboard() {
     # Docker advertises generic CDISpecDirs without nvidia.com/gpu devices.
     # Preserve the choice on --resume; any future GPU enablement is an
     # explicitly reviewed separate profile, not an implicit toolkit install.
-    nemohermes onboard --no-gpu "$@"
+    vendor_hermes onboard --no-gpu "$@"
 }
 connect() {
     command -v nemohermes >/dev/null 2>&1 || { printf 'NemoClaw not installed.\n' >&2; return 1; }
@@ -103,7 +105,8 @@ connect() {
         printf 'Choose a simple registered sandbox name (letters, digits, - or _).\n' >&2
         return 1
     }
-    nemohermes "$title" connect
+    sandbox_action_guard connect "$title" || return 1
+    vendor_hermes "$title" connect
 }
 # Read the upstream registry, not a second AIW sandbox inventory.
 # Selection stays in this shell only; Enter/0 always cancels safely.
@@ -119,7 +122,7 @@ select_registered_sandbox() {
         printf 'python3 is missing; cannot safely parse the sandbox inventory.\n' >&2
         return 1
     }
-    if ! inventory="$(nemohermes list --json)"; then
+    if ! inventory="$(vendor_hermes list --json)"; then
         printf 'Sandbox registry is unavailable. No action taken; see docs/nemoclaw-recovery.md.\n' >&2
         return 1
     fi
@@ -188,13 +191,22 @@ hermes_action() {
         printf '[BLOCKED] nemohermes not installed; see docs/nemoclaw-recovery.md.\n' >&2
         return 1
     }
+    sandbox_action_guard "$action" "$sandbox" || return 1
     case "$action" in
-        launch)  nemohermes launch "$sandbox" ;;
-        start)   nemohermes "$sandbox" start ;;
-        stop)    nemohermes "$sandbox" stop ;;
-        status)  nemohermes "$sandbox" status ;;
-        recover) nemohermes "$sandbox" recover ;;
-        *) printf 'Usage: aiw-nemo hermes [launch|start|stop|status|recover] NAME\n' >&2; return 2 ;;
+        launch)  vendor_hermes launch "$sandbox" ;;
+        resume)
+            [[ -t 0 && -t 1 ]] || {
+                printf '[BLOCKED] Hermes chat needs an interactive terminal.\n' >&2
+                return 1
+            }
+            # Hermes owns conversation history; use the latest-session
+            # selector, never an AIW session registry or stored ID.
+            vendor_hermes "$sandbox" exec --tty --stdin -- hermes --resume latest ;;
+        start)   vendor_hermes "$sandbox" start ;;
+        stop)    vendor_hermes "$sandbox" stop ;;
+        status)  vendor_hermes "$sandbox" status ;;
+        recover) vendor_hermes "$sandbox" recover ;;
+        *) printf 'Usage: aiw-nemo hermes [launch|resume|start|stop|status|recover] NAME\n' >&2; return 2 ;;
     esac
 }
 
@@ -203,7 +215,7 @@ hermes_action() {
 # it remains available explicitly through the chosen status action.
 compact_sandbox_status() {
     local sandbox="$1" payload summary
-    if ! payload="$(nemohermes "$sandbox" status --json 2>/dev/null)"; then
+    if ! payload="$(vendor_hermes "$sandbox" status --json 2>/dev/null)"; then
         # NemoClaw intentionally exits nonzero on unhealthy sandboxes; it may
         # still have produced a complete JSON report. Parse it regardless.
         :
@@ -245,68 +257,8 @@ except (ValueError, TypeError, json.JSONDecodeError) as exc:
     printf '%s\n' "$summary"
 }
 
-hermes_menu() {
-    local choice action
-    select_registered_sandbox || return 0
-    printf '\nSelected sandbox: %s\n' "$SELECTED_SANDBOX"
-    printf 'Current NemoClaw sandbox status (selected sandbox only; compact):\n'
-    compact_sandbox_status "$SELECTED_SANDBOX" ||
-        printf '[WARN] No verified compact status; no repair attempted.\n' >&2
-    printf '\n=== Saved network mappings (read-only; no probe container) ===\n'
-    network_check --sandbox "$SELECTED_SANDBOX" ||
-        printf '[WARN] Network inventory unavailable; no repair attempted.\n' >&2
-    printf ' 1) Launch interactive Hermes (new terminal attachment)\n'
-    printf ' 2) Start a stopped sandbox\n'
-    printf ' 3) Stop this sandbox and keep its data\n'
-    printf ' 4) Show full vendor sandbox status (may include private details)\n'
-    printf ' 5) Recover gateway/port forwards (only when needed)\n'
-    printf ' 0) Cancel\n'
-    read -r -p 'Action (Enter cancels): ' choice || return 0
-    case "$choice" in
-        1) action=launch ;;
-        2) action=start ;;
-        3) action=stop ;;
-        4) action=status ;;
-        5) action=recover ;;
-        ''|0) return 0 ;;
-        *) printf 'Unknown action; no change.\n' >&2; return 0 ;;
-    esac
-    if ! hermes_action "$action" "$SELECTED_SANDBOX"; then
-        printf 'Hermes action failed. Inspect output; see docs/nemoclaw-recovery.md.\n' >&2
-    fi
-}
+menu() { operator_menu; }
 
-menu() {
-    local choice title
-    while true; do
-        printf '\n🐧  NemoClaw + Hermes  🦞\n'
-        show_version
-        printf ' 1) Show Ubuntu/Podman/NemoClaw status\n'
-        printf ' 2) Set up Hermes / choose model provider (NemoClaw wizard)\n'
-        printf ' 3) Open official NemoClaw management CLI\n'
-        printf ' 4) Open a separate shell inside an existing sandbox\n'
-        printf ' 5) Verify Ubuntu 26, rootless Podman and NemoClaw\n'
-        printf ' 6) Resume interrupted NemoClaw onboarding\n'
-        printf ' 7) Hermes: launch / stop / start / recover (existing sandbox)\n'
-        printf ' q) Exit to terminal\n'
-        read -r -p 'Selection: ' choice || return
-        case "$choice" in
-            1) status ;;
-            2) onboard || printf "Onboarding returned an error; see docs/nemoclaw-recovery.md.\n" >&2 ;;
-            3) command -v nemohermes >/dev/null && nemohermes --help || printf 'Install NemoClaw first.\n' ;;
-            4) if select_registered_sandbox; then
-                   printf 'Opening a separate shell in %s (not the other terminal session).\n' "$SELECTED_SANDBOX"
-                   connect "$SELECTED_SANDBOX" || printf 'Connect failed; check sandbox status/recovery.\n' >&2
-               fi ;;
-            5) "$ROOT/install.sh" verify --profile nemoclaw-podman || printf "Verification failed; inspect output.\n" >&2 ;;
-            6) onboard --resume || printf "Onboarding resume returned an error; inspect output.\n" >&2 ;;
-            7) hermes_menu ;;
-            q|Q) return ;;
-            *) printf 'Select a displayed option.\n' ;;
-        esac
-        printf '\n'
-    done
-}
 case "${1:-menu}" in
     menu) menu ;;
     --version|version) show_version ;;
@@ -315,6 +267,7 @@ case "${1:-menu}" in
     connect) shift; [[ $# -eq 1 ]] || exit 2; connect "$1" ;;
     verify) "$ROOT/install.sh" verify --profile nemoclaw-podman ;;
     network) shift; network_check "$@" ;;
-    hermes) shift; [[ $# -eq 2 ]] || { printf 'Usage: aiw-nemo hermes [launch|start|stop|status|recover] NAME\n' >&2; exit 2; }; hermes_action "$1" "$2" ;;
-    *) printf 'Usage: aiw-nemo [--version|menu|status|network [--sandbox NAME] [--save FILE|--compare FILE] [--probe]|onboard|connect NAME|verify|hermes ACTION NAME]\n' >&2; exit 2 ;;
+    gateway) shift; [[ $# -eq 1 ]] || { printf 'Usage: aiw-nemo gateway [status|prepare|start|stop]\n' >&2; exit 2; }; gateway_action "$1" ;;
+    hermes) shift; [[ $# -eq 2 ]] || { printf 'Usage: aiw-nemo hermes [launch|resume|start|stop|status|recover] NAME\n' >&2; exit 2; }; hermes_action "$1" "$2" ;;
+    *) printf 'Usage: aiw-nemo [--version|menu|status|network [--sandbox NAME] [--save FILE|--compare FILE] [--probe]|gateway ACTION|onboard|connect NAME|verify|hermes ACTION NAME]\n' >&2; exit 2 ;;
 esac

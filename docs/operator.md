@@ -25,17 +25,69 @@ private snapshot commands, read the
 [controlled recovery and restart qualification](restart-qualification.md).
 
 The operator menu delegates to **upstream** `nemohermes` commands.
-Menu item 7 selects from the official registry **by number**; it displays
-the registered provider/model and any **known** live phase, and fetches a
-compact, filtered summary from the selected sandbox's **official upstream
-`status --json`**, without dumping the entire security policy. Full vendor
-status (which can contain private data) remains an explicit menu action. Unknown phases are
-labelled **not checked**, never guessed. Menu item 4 also selects an existing
-sandbox by number, opening a separate shell rather than another session in
-the same terminal. Enter/0 cancels **without exiting Linux or triggering
-a lifecycle operation**.
-No AIW-owned sandbox registry, automatic rebuild/destroy or network-policy
-bypass is involved.
+From the Windows penguin shortcut, enter WSL, type `aiw` and choose:
+
+1. **My Hermes sandboxes:** Select one from the official NemoClaw registry
+   by **number**, showing provider, model and the last reported phase.
+   Selected-sandbox actions are **new chat**, **continue latest Hermes
+   conversation**, **list/resume another conversation**, **start stopped
+   sandbox**, **stop sandbox while keeping data**, **open sandbox shell**,
+   **full status** and **advanced recovery**.
+2. **Create another sandbox:** The official NemoClaw Hermes onboarding
+   wizard, including its provider/security-policy selection. This is *not*
+   required to start an existing sandbox.
+3. **Shared gateway:** Observe gateway/Podman socket and the native
+   sandbox-to-host address; explicitly prepare it, start or stop the
+   shared gateway. Stop requires typing `STOP` because all sandboxes
+   depend on this service.
+4. **Advanced:** Host health, installer verification, network inventory,
+   official NemoClaw help and *onboarding* resume (not chat resume).
+
+When a user selects **New conversation**, **Continue latest conversation**,
+**List other conversations**, or **Open sandbox shell** on a **Stopped** sandbox,
+the operator explains that the sandbox is not running and asks:
+
+```text
+Sandbox <name> is stopped. Its files and agent conversations are preserved.
+Start this sandbox before continuing the most recent Hermes conversation? [y/N]
+```
+
+Only an explicit yes starts that *selected* sandbox using the already
+qualified native-Podman host-address check and official upstream lifecycle.
+The subsequent Hermes/session action runs **only after** a fresh upstream
+status reports `Ready`. Declining changes nothing; `Error` and unknown
+phases never trigger an automatic restart. This is general sandbox
+preparation, separate from Hermes-specific conversation resume.
+
+An upstream status JSON gives the selected sandbox phase. **OpenShell
+`Error` is not `Stopped`**; the operator blocks attempts to start or
+recover it. Unknown phases block startup rather than guessing. The compact
+menu never prints the whole security policy; full vendor status remains an
+explicit action and may include private details.
+
+**Lifecycle distinction:** `q` exits AIW into the Linux shell;
+`/quit` exits a Hermes *conversation*, not its Sandbox; `start`
+starts an existing *stopped sandbox*, not a conversation or the common
+gateway; `stop` stops only that sandbox and preserves its upstream
+data. Several sandboxes may run concurrently and separate Linux penguins
+can attach to different ones.
+
+**Resume:** The menu requests the official in-sandbox
+`hermes --resume latest` through the NemoClaw interactive exec bridge.
+No IDs or session catalogue are stored by AIW. If the installed
+OpenShell/terminal does not render this interactive exec correctly,
+use **Open sandbox shell** and type `hermes --continue` inside; this
+was previously verified. The **direct Hermes session resume** has been live-qualified: after a
+full Windows reboot and a separately approved sandbox start, the owner
+resumed the exact previous session ID. The later **one-step menu offer**
+to start a Stopped sandbox first now has both offline mock/CI coverage
+and a **successful owner-reported live test of `Continue most recent
+conversation`** (2026-11-22). No new vendor or AIW session registry
+is involved.
+
+**No AIW-owned sandbox registry, background supervisor, custom
+backup engine, automatic rebuild/destroy or network-policy bypass**
+is introduced. Cancellation (Enter/0) never mutates the vendor runtime.
 
 To inspect a sandbox and its current session attachments without making
 changes, use:
@@ -60,8 +112,9 @@ shell profiles. If another command already owns the name, it stops rather
 than overwriting it. Log in to a new shell so `~/.local/bin` is on PATH,
 or use `export PATH="$HOME/.local/bin:$PATH"`.
 
-The **Windows project**, once its launcher cutover is explicitly reviewed,
-provides two NemoClaw desktop icons: one opens a *real WSL Linux shell* in
+The **Windows project** provides two NemoClaw desktop icons through
+[merged PR #84](https://github.com/SomeSunlight/ai-workstation/pull/84).
+One opens a *real WSL Linux shell* in
 `~/ai-workstation-linux`, the other in `~`. Neither starts the menu
 automatically. Inside either shell, type `aiw` to open the menu.
 `q` returns to that Linux shell; type `exit` explicitly to close WSL.
@@ -77,21 +130,54 @@ Linux home path; in the observed Windows environment,
 wsl -d AIW-Nemo -u moresunlight --cd /home/moresunlight
 ```
 
-Do not switch the working production shortcut to the Linux candidate
-until both projects have passed the reviewed cutover gates.
+The operator has already used the **project penguin** to enter WSL
+and resume Hermes after Windows reboot. This qualifies the shell entry
+point, **not** the separate pinned production handoff still pending in
+[Windows PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85).
+Do not apply that remaining cutover implicitly.
 
-## An unexpected Windows reboot and a sandbox start error
+## Windows restart: preflight before creating another Error sandbox
 
-If `nemohermes <name> start` reports `OpenShell sandbox entered error
-while waiting for readiness`, it does **not** prove Hermes data loss.
-NemoClaw's source already tolerates transient startup Error states;
-persisting beyond that requires diagnosis. **Do not blindly repeat
-start/recover/rebuild or re-onboard**. From the Linux host, inspect
-`systemctl --user is-active podman.socket`, the selected sandbox's
-`nemohermes <name> status`, read-only `doctor --json` and bounded
-OpenShell sandbox logs. Keep log content and credentials private.
-The separate Speedy Dispatcher may also require its own service restart
-after Windows Update; that is not itself an OpenShell repair.
+A full Windows reboot may remove NVIDIA's native Podman host-loopback
+address `169.254.2.2/32`, even though the user-systemd
+`nemoclaw-openshell-gateway.service` is already active and listening on
+8080. Registered Podman containers still map `host.openshell.internal`
+to that missing address. A policy fetch then fails five times and OpenShell
+can leave the sandbox in sticky `Error`. The four-stage controlled
+reproduction and exact NVIDIA source cause are preserved in
+[Linux Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3).
+
+**Safety contract for AIW actions:** Read-only startup shows whether
+the address exists on Linux `lo`. Before **starting a stopped sandbox,
+launching Hermes or resuming a conversation**, AIW verifies the upstream
+sandbox phase and the host address. If it is missing, AIW asks permission
+to run NVIDIA's exact bounded host preparation:
+
+```bash
+sudo -- ip address replace 169.254.2.2/32 dev lo
+```
+
+The operator explicitly approves a possible sudo password prompt;
+AIW then verifies the interface assignment. If it conflicts, cannot
+be inspected or permission is declined, **no sandbox start/launch is
+attempted**. A stopped shared gateway must be started separately under
+**Shared gateway**. No address is changed at *menu startup*, no Podman
+container metadata is rewritten and no already-`Error` sandbox is
+automatically resurrected. **Direct** use of `nemohermes` bypasses
+the AIW guard.
+
+For a non-interactive read-only check use `aiw gateway status`;
+`aiw gateway prepare` explicitly requests interactive approval.
+The preparation lasts until the Linux network stack next resets; it is
+*not* a new boot service. Existing data in an `Error` sandbox is not
+necessarily lost; keep it unless a later explicit vendor cleanup is
+approved. For source-level evidence and safe upstream follow-up see
+[Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3).
+
+The recurring Node SQLite `ExperimentalWarning` category is suppressed
+only for NemoClaw child processes (`NODE_OPTIONS=--disable-warning=ExperimentalWarning`).
+Other warnings and errors are not suppressed. The separate Speedy
+Dispatcher remains outside this Linux operator's authority.
 
 ## Explicit installation on a clean Ubuntu 26.04 host
 
@@ -107,13 +193,15 @@ way to create/configure Hermes and its OpenShell policies. It never
 destroys or rebuilds an existing sandbox. The systemd user Podman socket
 must pass the rootless/cgroups-v2/Netavark checks.
 
-The independent installer **has passed** a fresh WSL Ubuntu 26.04
-host trial on 2026-11-19: Ansible completed with zero failures,
-NemoClaw v0.0.144 was installed, and a subsequent independent
-`./install.sh verify` passed. Native bare-metal Ubuntu and a full
-new Hermes sandbox onboarding have **not** been tested. Do **not**
-run it on the existing working `AIW-Nemo` merely because this
-repository was cloned: follow the reviewed cutover plan instead.
+The independent installer **passed** a clean WSL Ubuntu 26.04
+host trial on 2026-11-19: Ansible completed without failures,
+NemoClaw v0.0.144 was installed, and `./install.sh verify` passed.
+**Native bare-metal Ubuntu remains untested.** Separately, the owner
+successfully used the existing `AIW-Nemo` environment to onboard
+a new `testhermes03` sandbox and qualify its Windows-reboot recovery;
+this does not qualify an end-to-end new Hermes sandbox onboarding
+*on the clean-room installation*. Do **not** run the host installer
+on existing working `AIW-Nemo` merely to update the source.
 
 ## Security and persistence
 
@@ -133,9 +221,12 @@ and the container exited 1. The concrete evidence and **bounded
 owner-approved recovery gate** are in
 [controlled recovery and restart qualification](restart-qualification.md).
 Do not treat `recover`, a host gateway restart or `podman network reload`
-as a proven repair of stale `HostConfig.ExtraHosts`. The full native
-Hermes ZIP has been encrypted off WSL, but **no in-place restore,
-application import or cold-reboot recovery test has yet passed**.
+as a proven repair of stale `HostConfig.ExtraHosts`. The full native Hermes ZIP has been encrypted off WSL; **no application
+import or in-place rescue of the two Error-phase sandboxes was tested**.
+A different sandbox, `testhermes03`, **did pass a complete Windows
+reboot**, explicit NVIDIA host-address restoration, `Ready` status
+and preserved Hermes conversation history. Do not conflate this
+successful restart with a verified ZIP restore or an automatic boot fix.
 
 A clean shutdown/restart is not a rebuild. Use upstream
 `status -> stop -> status -> start -> launch` **only after**
@@ -153,3 +244,28 @@ CRC-verified the official full Hermes ZIP and protected an encrypted
 copy on another Windows drive (2026-11-20; physical disk independence not verified). Never publish
 configuration, environment files, logs, credential archives or
 sensitive inventories.
+
+## Operational acceptance and deferred improvements (2026-11-22)
+
+- **Passed live:** owner used `testhermes03` with the pinned
+  NemoClaw/OpenShell stack; stopped it, restarted Windows, observed
+  the missing native-Podman host address, explicitly approved its
+  restoration, started the existing sandbox and resumed the **same
+  Hermes conversation**. The retained transcript does not separately
+  demonstrate a new, post-restart inference answer.
+- **Passed live (owner report, 2026-11-22):** the final PR #5
+  `Continue most recent conversation` workflow was used successfully.
+  Its generic sandbox-readiness helper offers to start a **Stopped**
+  sandbox only on explicit approval, reuses NVIDIA's host preflight,
+  checks fresh upstream `Ready`, and then invokes the agent action.
+  Offline tests cover declined approval, missing host alias and Error
+  phase. No automatic background startup or additional registry.
+- **Follow-up, not a PR #5 blocker:** NVIDIA upstream fix and regression
+  test ([Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3)),
+  reviewed NemoClaw upgrade from current v0.0.144 pin,
+  Windows launcher revision warning/pinned handoff and the
+  missing `tirith` scanner observed inside Hermes.
+- **Design boundary:** a future multi-agent operator should reuse the
+  generic *selected sandbox readiness/start* step, while keeping
+  Hermes conversation handling an agent-specific adapter. No
+  parallel AIW sandbox/session registry is justified.
