@@ -7,8 +7,9 @@ and the Windows penguin launcher [PR #84](https://github.com/SomeSunlight/ai-wor
 have been merged. The operator uses the real Linux `aiw` command from
 `AIW-Nemo`; vendor lifecycle and policy remain owned by NemoClaw/OpenShell.
 
-**Operator release:** [Draft PR #5](https://github.com/SomeSunlight/ai-workstation-linux/pull/5)
-addresses [Issue #4](https://github.com/SomeSunlight/ai-workstation-linux/issues/4).
+**Operator release:** [PR #5](https://github.com/SomeSunlight/ai-workstation-linux/pull/5)
+addresses [Issue #4](https://github.com/SomeSunlight/ai-workstation-linux/issues/4)
+and was owner-accepted and squash-merged into `main`.
 Its Windows-reboot host-alias preparation **passed** with a new
 `testhermes03` sandbox after a full Windows restart; the **same Hermes
 session was resumed**. The later *consent-to-start a Stopped sandbox
@@ -16,9 +17,15 @@ when continuing a chat* has now also **passed owner-reported live testing** (202
 No automatic Windows-start address restoration or already-`Error`
 sandbox rescue is claimed.
 
-**Before squash-merge:** updated plan/docs, exact-HEAD CI green and
-explicit owner approval. Do **not** merge the draft automatically.
-The owner's workflow remains pull → smoke test → accept → squash-merge.
+**Next gate — Issue #6:** pin NVIDIA v0.0.145 at the verified annotated-tag
+commit, qualify offline CI, then test a **new** Ubuntu 26.04 WSL distribution
+side by side. Keep the old `AIW-Nemo` (including its stuck `testhermes02`)
+untouched until the replacement works. Deletion requires a separate
+identity check and explicit owner approval. Existing `Ubuntu-26.04` WSL
+was inspected on 2026-11-22 and reports **Ubuntu 24.04** internally,
+with historical files; it is **not** a fresh 26.04 installation candidate.
+The productive `Ubuntu-24.04` WSL is excluded from all cleanups.
+See [fresh qualification](docs/fresh-nemoclaw-wsl.md).
 
 **After PR #5:** Focus on practical agent tooling
 ([Issue #2](https://github.com/SomeSunlight/ai-workstation-linux/issues/2));
@@ -91,5 +98,5 @@ scanner not available (not to be hidden).
 - [x] Owner reports **successful live test of `Continue most recent conversation`** after the final UX improvement (2026-11-22); remaining operator acceptance gap closed.
 - [x] Operator/README/restart instructions updated to distinguish old incident from successful manual recovery.
 - [x] PR #5 **exact-head** CI green after documentation reconciliation (both Linux source/operator and Ansible-contract jobs; revalidate the very final commit in the PR checks).
-- [ ] Owner accepts PR #5 and initiates squash-merge; no automatic merge here.
+- [x] Owner accepted PR #5 and squash-merged it into main (2026-11-22).
 - [ ] Post-merge: verify `main` revision and handoff the Windows pin only through the separate Windows draft PR.

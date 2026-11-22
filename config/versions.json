@@ -19,7 +19,7 @@
       },
       "nemoclaw": {
         "repository": "https://github.com/NVIDIA/NemoClaw.git",
-        "commit": "82e1ad7474ec7175c5b860b2bfa9d7940bc6e75f"
+        "commit": "6f36feffb7a0f448194eafef3042e7ad47faa0de"
       }
     }
   }
