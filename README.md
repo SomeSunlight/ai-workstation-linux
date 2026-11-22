@@ -27,8 +27,9 @@ a complete Windows reboot followed by explicit restoration of
 NVIDIA's missing host-loopback address, upstream sandbox startup
 and continuation of the **same Hermes session**. The further
 convenience change to offer sandbox startup when a user selects
-“Continue conversation” was added *after* that reboot test and has
-offline CI coverage, but has not separately been live-qualified.
+“Continue conversation” was added *after* that reboot test. It has
+since **passed a separate owner-reported live test (2026-11-22)**, in
+addition to offline CI coverage.
 Windows [PR #84](https://github.com/SomeSunlight/ai-workstation/pull/84)
 (the penguin shell launcher) is **merged**; the independent pinned
 Windows/Linux handoff [PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85)
@@ -85,8 +86,8 @@ stopped sandbox or launching/resuming a chat. If it is missing, it asks
 for explicit permission to re-establish NVIDIA's address with `sudo`
 and verifies the result. It does not rescue already-`Error` sandboxes,
 change OpenShell versions or alter Podman container metadata. The **full Windows reboot and manual repair have been live-tested** with
-`testhermes03`; the later one-click *sandbox-start offer* has only
-been covered by offline mocks so far. See
+`testhermes03`; the later conversation-resume menu improvement has
+also been successfully tested by the owner (2026-11-22). See
 [the evidence and upstream handoff](https://github.com/SomeSunlight/ai-workstation-linux/issues/3)
 and [operator guide](docs/operator.md).
 
