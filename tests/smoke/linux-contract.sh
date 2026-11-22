@@ -5,6 +5,20 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 cd "$ROOT"
 bash -n install.sh bootstrap/linux/install.sh bin/aiw-nemo bin/aiw-operator-menu.sh
 python3 -m json.tool config/versions.json >/dev/null
+# Reviewed NVIDIA v0.0.145 annotated tag resolves to this immutable source commit.
+# Adjust this offline assertion deliberately with each approved vendor upgrade.
+python3 - <<'PY'
+import json
+with open("config/versions.json", encoding="utf-8") as source:
+    vendor = json.load(source)["versions"]["nemoclaw_podman"]["nemoclaw"]
+assert vendor["repository"] == "https://github.com/NVIDIA/NemoClaw.git"
+assert vendor["commit"] == "6f36feffb7a0f448194eafef3042e7ad47faa0de"
+PY
+grep -Fq 'build_identity="$source_dir/dist/build-identity.json"' bootstrap/linux/install.sh
+grep -Fq '{{ nemoclaw_host_source_dir }}/dist/build-identity.json' ansible/roles/nemoclaw_host/tasks/verify.yml
+grep -Fq '{{ nemoclaw_host_source_dir }}/dist/build-identity.json' ansible/roles/nemoclaw_host/tasks/main.yml
+! grep -Fq '.nemoclaw/source/dist/build-identity.json' bootstrap/linux/install.sh ansible/roles/nemoclaw_host/tasks/{main,verify}.yml
+bash tests/smoke/nemoclaw-build-identity.sh
 [[ -f uv.lock && -f pyproject.toml ]]
 [[ ! -e bootstrap/windows/Launch-NemoClaw.ps1 ]]
 [[ ! -e aiw.cmd ]]

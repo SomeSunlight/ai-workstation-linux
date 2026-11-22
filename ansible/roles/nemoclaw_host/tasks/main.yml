@@ -52,7 +52,7 @@
 
 - name: Inspect upstream build identity after interrupted first install
   ansible.builtin.stat:
-    path: "{{ ai_workstation_home }}/.nemoclaw/source/dist/build-identity.json"
+    path: "{{ nemoclaw_host_source_dir }}/dist/build-identity.json"
   register: nemoclaw_host_build_identity_stat
   when:
     - nemoclaw_host_cli_stat.stat.exists
@@ -72,7 +72,7 @@
 
 - name: Read upstream build identity only for recovery
   ansible.builtin.slurp:
-    src: "{{ ai_workstation_home }}/.nemoclaw/source/dist/build-identity.json"
+    src: "{{ nemoclaw_host_source_dir }}/dist/build-identity.json"
   register: nemoclaw_host_build_identity
   when:
     - nemoclaw_host_cli_stat.stat.exists

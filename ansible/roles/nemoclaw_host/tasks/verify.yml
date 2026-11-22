@@ -22,6 +22,22 @@
       - nemoclaw_host_verify_checkout.stdout == nemoclaw_host_source_commit
     quiet: true
 
+- name: Read NVIDIA-installed NemoClaw CLI build identity
+  ansible.builtin.slurp:
+    src: "{{ nemoclaw_host_source_dir }}/dist/build-identity.json"
+  register: nemoclaw_host_verify_build_identity
+
+- name: Ensure installed vendor build matches pinned checkout and receipt
+  ansible.builtin.assert:
+    that:
+      - >-
+        (nemoclaw_host_verify_build_identity.content | b64decode | from_json).sourceRevision
+        == nemoclaw_host_source_commit
+    fail_msg: >-
+      Installed NemoClaw build identity differs from the reviewed source pin;
+      refusing to verify a stale or independently replaced CLI.
+    quiet: true
+
 - name: Verify NemoClaw Hermes CLI without modifying OpenShell
   ansible.builtin.command:
     argv: ["{{ nemoclaw_host_binary }}", --version]

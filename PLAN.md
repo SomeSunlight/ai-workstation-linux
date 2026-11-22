@@ -1,5 +1,49 @@
 # AI Workstation Linux — development and acceptance plan
 
+## Live acceptance and merge handoff (2026-11-23)
+
+**Fresh deployment: owner ACCEPTED.** Windows AIW Draft PR #85 installed
+**only** `AIW-Nemo-New` with actual Ubuntu 26.04, rootless Podman,
+official NVIDIA NemoClaw v0.0.145 and OpenShell 0.0.116.
+The corrected Linux verifier passed, and `aiw` was registered.
+After a first-run NVIDIA preflight was blocked by an omitted `--no-gpu`
+in the *Windows* launcher, Windows now invokes this Linux project's
+pre-existing CPU-only `aiw-nemo onboard` instead. NVIDIA resume needed
+the explicit sandbox name because the original failed before creating
+sandbox identity; owner successfully completed onboarding as
+`testhermes04`, with working Hermes and OpenRouter inference.
+
+**Full Windows reboot while `testhermes04` was running: PASS with
+explicit manual network repair.** The same sandbox survived as `Stopped`
+with its workspace preserved; user systemd OpenShell gateway remained
+active and Podman socket available. The vendor-required
+`169.254.2.2/32` loopback alias was missing after reboot *again*,
+including with NemoClaw v0.0.145. AIW's guarded, consented host-address
+preparation allowed the existing sandbox to start; owner confirmed Hermes
+returned to service and produced a new model-based answer. This validates
+the no-prior-stop Windows reboot case on this host, **not** abrupt WSL
+power-loss/corruption recovery, automatic boot repair or the old
+`Error` sandboxes' restoration.
+
+**Release order:** first owner squash-merges
+[Linux PR #7](https://github.com/SomeSunlight/ai-workstation-linux/pull/7)
+after exact-head green CI. Obtain the resulting Linux `main` squash
+SHA, then repin the Windows manifest in
+[Windows PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85),
+run exact-head Windows CI, and only then squash-merge Windows.
+Protect `Ubuntu-24.04`, misnamed `Ubuntu-26.04`, and `AIW-Nemo`;
+no distro cleanup, provider migration, sandbox rebuild, or forced update
+is part of these merges. Native bare-metal Ubuntu is still untested.
+
+**Separated follow-ups:** [Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3)
+is the evidence base for a short, factual NVIDIA NemoClaw upstream bug
+report and focused regression, to be researched and drafted in a separate
+conversation; do not publish without owner approval. [Issue #2](https://github.com/SomeSunlight/ai-workstation-linux/issues/2)
+tracks improving actual agent capabilities, including controlled web
+access and browser/HTML preview. Sandbox proxy blocking arbitrary
+external sites while OpenRouter inference works is expected isolation,
+not an outage to bypass.
+
 ## Current checkpoint (2026-11-22)
 
 **Baseline:** Linux extraction [PR #1](https://github.com/SomeSunlight/ai-workstation-linux/pull/1)
@@ -7,8 +51,9 @@ and the Windows penguin launcher [PR #84](https://github.com/SomeSunlight/ai-wor
 have been merged. The operator uses the real Linux `aiw` command from
 `AIW-Nemo`; vendor lifecycle and policy remain owned by NemoClaw/OpenShell.
 
-**Operator release:** [Draft PR #5](https://github.com/SomeSunlight/ai-workstation-linux/pull/5)
-addresses [Issue #4](https://github.com/SomeSunlight/ai-workstation-linux/issues/4).
+**Operator release:** [PR #5](https://github.com/SomeSunlight/ai-workstation-linux/pull/5)
+addresses [Issue #4](https://github.com/SomeSunlight/ai-workstation-linux/issues/4)
+and was owner-accepted and squash-merged into `main`.
 Its Windows-reboot host-alias preparation **passed** with a new
 `testhermes03` sandbox after a full Windows restart; the **same Hermes
 session was resumed**. The later *consent-to-start a Stopped sandbox
@@ -16,9 +61,15 @@ when continuing a chat* has now also **passed owner-reported live testing** (202
 No automatic Windows-start address restoration or already-`Error`
 sandbox rescue is claimed.
 
-**Before squash-merge:** updated plan/docs, exact-HEAD CI green and
-explicit owner approval. Do **not** merge the draft automatically.
-The owner's workflow remains pull → smoke test → accept → squash-merge.
+**Next gate — Issue #6:** pin NVIDIA v0.0.145 at the verified annotated-tag
+commit, qualify offline CI, then test a **new** Ubuntu 26.04 WSL distribution
+side by side. Keep the old `AIW-Nemo` (including its stuck `testhermes02`)
+untouched until the replacement works. Deletion requires a separate
+identity check and explicit owner approval. Existing `Ubuntu-26.04` WSL
+was inspected on 2026-11-22 and reports **Ubuntu 24.04** internally,
+with historical files; it is **not** a fresh 26.04 installation candidate.
+The productive `Ubuntu-24.04` WSL is excluded from all cleanups.
+See [fresh qualification](docs/fresh-nemoclaw-wsl.md).
 
 **After PR #5:** Focus on practical agent tooling
 ([Issue #2](https://github.com/SomeSunlight/ai-workstation-linux/issues/2));
@@ -91,5 +142,5 @@ scanner not available (not to be hidden).
 - [x] Owner reports **successful live test of `Continue most recent conversation`** after the final UX improvement (2026-11-22); remaining operator acceptance gap closed.
 - [x] Operator/README/restart instructions updated to distinguish old incident from successful manual recovery.
 - [x] PR #5 **exact-head** CI green after documentation reconciliation (both Linux source/operator and Ansible-contract jobs; revalidate the very final commit in the PR checks).
-- [ ] Owner accepts PR #5 and initiates squash-merge; no automatic merge here.
+- [x] Owner accepted PR #5 and squash-merged it into main (2026-11-22).
 - [ ] Post-merge: verify `main` revision and handoff the Windows pin only through the separate Windows draft PR.

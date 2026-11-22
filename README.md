@@ -17,9 +17,12 @@ The independent Linux repository's initial extraction
 is **merged**. This repository provides the Ubuntu 26.04 host installer,
 rootless Podman/NemoClaw pins, the separate `aiw` CLI, verification
 and offline tests. Linux
-[Draft PR #5](https://github.com/SomeSunlight/ai-workstation-linux/pull/5)
-contains the new operator-first cockpit and interactive reboot
-preflight, pending **owner approval and squash-merge**.
+[PR #5](https://github.com/SomeSunlight/ai-workstation-linux/pull/5)
+was owner-accepted and squash-merged. The operator-first cockpit and
+consented reboot preflight are available on `main`. A separate
+[Issue #6](https://github.com/SomeSunlight/ai-workstation-linux/issues/6)
+tracks NVIDIA v0.0.145 qualification **only on a fresh WSL instance**,
+without upgrading or deleting the prior `AIW-Nemo` environment.
 
 The operator has **already exercised the candidate on the actual
 `AIW-Nemo` distro** with a new `testhermes03` sandbox. It passed
@@ -55,7 +58,8 @@ host installation** for qualified Ubuntu 26.04; it requires sudo and is
 not the first step on an existing working NemoClaw host. The official
 NemoClaw `onboard` command is always separate and explicit.
 
-Start with [Operator guide](docs/operator.md) and
+Start with [Operator guide](docs/operator.md),
+[Fresh NemoClaw v0.0.145 WSL qualification](docs/fresh-nemoclaw-wsl.md) and
 [Side-by-side migration](docs/migration.md). Never run rebuild/destroy,
 change upstream credentials, or replace the old WSL installation
 merely to update the Linux source.
