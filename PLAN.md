@@ -148,6 +148,6 @@ scanner not available (not to be hidden).
 ## Explicit private inference host consent — Issue #8
 
 - [x] Inspect current onboarding, operator menu and offline contracts.
-- [ ] Implement bounded per-user consent and onboarding-only environment.
-- [ ] Extend offline tests and operator documentation.
+- [x] Implement bounded per-user consent and onboarding-only environment.
+- [x] Extend offline tests and operator documentation.
 - [ ] Verify exact review head; obtain owner acceptance before merge.
