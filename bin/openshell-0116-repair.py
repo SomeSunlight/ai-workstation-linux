@@ -75,14 +75,21 @@ def repair(payload, name, identity):
     status = one(payload, 3, 2)
     phase = one(status[4], 6, 0)
     require(phase[4] == 3 and phase[3] - phase[2] == 1, "Not canonical Error")
-    require(not any(f[0] == 9 for f in fields(status[4])),
-            "Recorded main-process exit; phase-only repair not qualified")
+    exits = [f for f in fields(status[4]) if f[0] == 9]
+    require(len(exits) <= 1 and all(f[1] == 0 for f in exits),
+            "Unexpected exit-code encoding")
     reasons = []
     for f in fields(status[4]):
         if f[0] == 5 and f[1] == 2:
             reasons.append(tuple(one(f[4], n, 2)[4] for n in (1, 2, 3)))
-    require((b"Ready", b"False", b"ContainerExited") in reasons,
-            "No matching upstream ContainerExited condition")
+    # OpenShell v0.0.116 compute/mod.rs write_lifecycle_phase clears exit_code
+    # on Starting and retains the previous instance ID as a tombstone.
+    # Preserve both here; let the native start perform that transition.
+    expected = b"MainProcessExited" if exits else b"ContainerExited"
+    require((b"Ready", b"False", expected) in reasons,
+            "No matching lifecycle condition: " + repr(reasons))
+    if exits:
+        print(f"Recorded main-process exit: {exits[0][4]}; native start clears it.")
     offset = status[2] + phase[2]
     return payload[:offset] + b"\x07" + payload[offset+1:]
 
