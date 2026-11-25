@@ -96,7 +96,9 @@ onboard() {
     # Docker advertises generic CDISpecDirs without nvidia.com/gpu devices.
     # Preserve the choice on --resume; any future GPU enablement is an
     # explicitly reviewed separate profile, not an implicit toolkit install.
-    vendor_hermes onboard --no-gpu "$@"
+    local trusted_hosts
+    trusted_hosts="$(python3 "$ROOT/bin/aiw-trusted-hosts.py" effective)" || return 1
+    NEMOCLAW_TRUSTED_PRIVATE_HOSTS="$trusted_hosts" vendor_hermes onboard --no-gpu "$@"
 }
 connect() {
     command -v nemohermes >/dev/null 2>&1 || { printf 'NemoClaw not installed.\n' >&2; return 1; }
@@ -264,10 +266,11 @@ case "${1:-menu}" in
     --version|version) show_version ;;
     status) status ;;
     onboard) shift; onboard "$@" ;;
+    trusted-hosts) [[ $# -eq 1 ]] || exit 2; python3 "$ROOT/bin/aiw-trusted-hosts.py" configure ;;
     connect) shift; [[ $# -eq 1 ]] || exit 2; connect "$1" ;;
     verify) "$ROOT/install.sh" verify --profile nemoclaw-podman ;;
     network) shift; network_check "$@" ;;
     gateway) shift; [[ $# -eq 1 ]] || { printf 'Usage: aiw-nemo gateway [status|prepare|start|stop]\n' >&2; exit 2; }; gateway_action "$1" ;;
     hermes) shift; [[ $# -eq 2 ]] || { printf 'Usage: aiw-nemo hermes [launch|resume|start|stop|status|recover] NAME\n' >&2; exit 2; }; hermes_action "$1" "$2" ;;
-    *) printf 'Usage: aiw-nemo [--version|menu|status|network [--sandbox NAME] [--save FILE|--compare FILE] [--probe]|gateway ACTION|onboard|connect NAME|verify|hermes ACTION NAME]\n' >&2; exit 2 ;;
+    *) printf 'Usage: aiw-nemo [--version|menu|status|network [--sandbox NAME] [--save FILE|--compare FILE] [--probe]|gateway ACTION|onboard|trusted-hosts|connect NAME|verify|hermes ACTION NAME]\n' >&2; exit 2 ;;
 esac
