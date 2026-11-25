@@ -1,5 +1,17 @@
 # AI Workstation Linux — development and acceptance plan
 
+## 2026-11-25 — temporary Error recovery (#11 / PR #12)
+
+- [x] Confirm pinned OpenShell 0.0.116 and independent upstream phase-only precedent (#3440).
+- [x] Implement explicit offline repair of a single sandbox phase; no automatic backups, policy edits or runtime replacement.
+- [x] Owner live test: testhermes04 was already Stopped; native start, chat and stop passed without repair.
+- [x] Owner live test: testhermes05 Error with MainProcessExited; repair -> Stopped -> native start -> Ready; Hermes chat and WhatsApp replies work, pairing retained.
+- [x] Owner live test: subsequent normal stop/start and autonomous WhatsApp communication passed (2026-11-25).
+- [x] Record premature NemoClaw startup probe and unknown WhatsApp diagnostics despite working service; do not rebuild on this evidence.
+- [ ] Final exact-head CI, owner squash-merge and post-merge baseline checkpoint.
+- [ ] Remove emergency helper when NemoClaw pins a release with adequate native Error recovery. No new recovery infrastructure.
+- [ ] Separate follow-up PR #10: post-onboarding WhatsApp reminder; fresh wizard display not yet owner-tested. PR #9: private-host consent; separate acceptance.
+
 ## Live acceptance and merge handoff (2026-11-23)
 
 **Fresh deployment: owner ACCEPTED.** Windows AIW Draft PR #85 installed
@@ -25,15 +37,7 @@ the no-prior-stop Windows reboot case on this host, **not** abrupt WSL
 power-loss/corruption recovery, automatic boot repair or the old
 `Error` sandboxes' restoration.
 
-**Release order:** first owner squash-merges
-[Linux PR #7](https://github.com/SomeSunlight/ai-workstation-linux/pull/7)
-after exact-head green CI. Obtain the resulting Linux `main` squash
-SHA, then repin the Windows manifest in
-[Windows PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85),
-run exact-head Windows CI, and only then squash-merge Windows.
-Protect `Ubuntu-24.04`, misnamed `Ubuntu-26.04`, and `AIW-Nemo`;
-no distro cleanup, provider migration, sandbox rebuild, or forced update
-is part of these merges. Native bare-metal Ubuntu is still untested.
+**Completed release handoff:** Linux PR #7 squash-merged (`d4020aa`); Windows PR #85 squash-merged (`777a070`). Protect the existing distros; no cleanup or forced update is part of current changes. Native bare-metal Ubuntu remains untested.
 
 **Separated follow-ups:** [Issue #3](https://github.com/SomeSunlight/ai-workstation-linux/issues/3)
 is the evidence base for a short, factual NVIDIA NemoClaw upstream bug

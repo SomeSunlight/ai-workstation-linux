@@ -98,6 +98,71 @@ ordinary restart. **Never use rebuild/destroy/prune as an automatic
 fallback**, and never re-onboard a working sandbox merely to refresh
 Linux source code.
 
+
+## Temporary emergency recovery: OpenShell 0.0.116 only (#11)
+
+Unsupported, manual last resort for the disposable test WSL, not a normal
+AIW lifecycle operation. The upstream precedent is
+[OpenShell #3440, successful phase-only recovery](https://github.com/ai-openshell/openshell/issues/3440#issuecomment-5744288601)
+(macOS/Docker, not rootless Podman). It changed only the protobuf phase
+from Error (3) to Stopped (7), then used the native start command.
+The pinned [protobuf schema](https://github.com/ai-openshell/openshell/blob/v0.0.116/proto/openshell.proto)
+defines the fields used by this helper. No policy or credential changes.
+No automatic backups or recreation. A failed repair may require reinstalling
+the disposable WSL; never use this on the productive distro.
+
+From the **test WSL host**, with no active sandbox containers or concurrent
+operators, identify the sandbox and verify the actual gateway database path:
+ 
+```bash
+openshell --version
+openshell sandbox get testhermes05
+systemctl --user show nemoclaw-openshell-gateway.service -p MainPID
+```
+
+Inspect the active gateway process's open database file locally (do not
+share environment variables or credentials). The expected path is
+`~/.local/state/nemoclaw/openshell-docker-gateway/openshell.db`.
+If it differs, stop; the helper is not qualified for that installation.
+Use the UUID from OpenShell, not a Podman container ID:
+
+```bash
+python3 bin/openshell-0116-repair.py testhermes05 7483e08d-c9e6-40ca-bec6-a789f2b96f46
+```
+
+This defaults to a read-only eligibility check. It deliberately refuses
+different failure conditions, missing volumes, or running containers.
+For MainProcessExited with a recorded exit code, only the phase is changed;
+[the pinned native Starting transition](https://github.com/ai-openshell/openshell/blob/v0.0.116/crates/openshell-server/src/compute/mod.rs)
+clears the exit code and retains the previous supervisor instance ID. If blocked, do not relax the checks.
+
+Only after a successful dry run and explicit acceptance of the risk:
+ 
+```bash
+aiw gateway stop
+python3 bin/openshell-0116-repair.py testhermes05 7483e08d-c9e6-40ca-bec6-a789f2b96f46 --apply
+aiw gateway start
+openshell sandbox get testhermes05
+```
+
+Restart the shared gateway even if the helper fails. If and only if the
+original sandbox is now Stopped, use the supported start path:
+
+```bash
+aiw hermes start testhermes05
+openshell sandbox get testhermes05
+```
+
+Check original UUID, volumes, Hermes chat/inference and user data.
+Owner live acceptance (2026-11-25): testhermes05 recovered from Error to Stopped
+and Ready using this procedure. Hermes chat and WhatsApp replies worked without
+re-pairing; subsequent normal stop/start and messaging passed. The immediate
+NemoClaw post-start probe failed, but Hermes became usable after about 30 seconds.
+WhatsApp diagnostics reported unknown despite working messaging; do not rebuild
+on incomplete diagnostics alone. testhermes04 was already Stopped and needed
+no repair. Full workspace inventory was not separately compared. Remove this
+helper when the vendor pin provides native Error recovery. Do not use it to clear arbitrary Error states.
+
 ## Security and data
 
 - Do not post gateway tokens, API keys, full vendor diagnostics with
