@@ -76,6 +76,23 @@ def save(fd, value):
         except FileNotFoundError:
             pass
 
+def prompt(message):
+    # Do not read ahead from a shared pipe (the caller may read the next
+    # menu selection). Terminal input retains normal line editing.
+    if sys.stdin.isatty():
+        return input(message)
+    print(message, end="", flush=True)
+    line = bytearray()
+    while True:
+        byte = os.read(sys.stdin.fileno(), 1)
+        if byte == b"\n":
+            return line.decode("utf-8")
+        if not byte:
+            raise EOFError
+        line.extend(byte)
+        if len(line) > 8192:
+            raise ValueError("Input too long.")
+
 def main():
     action = sys.argv[1]
     fd = directory()
@@ -93,12 +110,12 @@ def main():
         print("Saved hosts: " + (stored or "(none)"))
         if KEY in os.environ:
             print("An explicit environment override takes precedence for this shell.")
-        answer = input("Replace list (comma-separated), '-' to remove, Enter to keep: ")
+        answer = prompt("Replace list (comma-separated), '-' to remove, Enter to keep: ")
         if not answer:
             return
         value = validated("" if answer == "-" else answer)
         print("New saved hosts: " + (value or "(none)"))
-        if input("Confirm this exact list [y/N]: ") != "y":
+        if prompt("Confirm this exact list [y/N]: ") != "y":
             print("No changes made.")
             return
         if fd is None:
