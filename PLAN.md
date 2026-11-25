@@ -1,5 +1,17 @@
 # AI Workstation Linux — development and acceptance plan
 
+## 2026-11-25 — temporary Error recovery (#11 / PR #12)
+
+- [x] Confirm pinned OpenShell 0.0.116 and independent upstream phase-only precedent (#3440).
+- [x] Implement explicit offline repair of a single sandbox phase; no automatic backups, policy edits or runtime replacement.
+- [x] Owner live test: testhermes04 was already Stopped; native start, chat and stop passed without repair.
+- [x] Owner live test: testhermes05 Error with MainProcessExited; repair -> Stopped -> native start -> Ready; Hermes chat and WhatsApp replies work, pairing retained.
+- [x] Owner live test: subsequent normal stop/start and autonomous WhatsApp communication passed (2026-11-25).
+- [x] Record premature NemoClaw startup probe and unknown WhatsApp diagnostics despite working service; do not rebuild on this evidence.
+- [ ] Final exact-head CI, owner squash-merge and post-merge baseline checkpoint.
+- [ ] Remove emergency helper when NemoClaw pins a release with adequate native Error recovery. No new recovery infrastructure.
+- [ ] Separate follow-up PR #10: post-onboarding WhatsApp reminder; fresh wizard display not yet owner-tested. PR #9: private-host consent; separate acceptance.
+
 ## Live acceptance and merge handoff (2026-11-23)
 
 **Fresh deployment: owner ACCEPTED.** Windows AIW Draft PR #85 installed
