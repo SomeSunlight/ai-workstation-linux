@@ -144,3 +144,10 @@ scanner not available (not to be hidden).
 - [x] PR #5 **exact-head** CI green after documentation reconciliation (both Linux source/operator and Ansible-contract jobs; revalidate the very final commit in the PR checks).
 - [x] Owner accepted PR #5 and squash-merged it into main (2026-11-22).
 - [ ] Post-merge: verify `main` revision and handoff the Windows pin only through the separate Windows draft PR.
+
+## Explicit private inference host consent — Issue #8
+
+- [x] Inspect current onboarding, operator menu and offline contracts.
+- [ ] Implement bounded per-user consent and onboarding-only environment.
+- [ ] Extend offline tests and operator documentation.
+- [ ] Verify exact review head; obtain owner acceptance before merge.
