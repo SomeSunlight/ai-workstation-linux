@@ -8,9 +8,11 @@
 - [x] Owner live test: testhermes05 Error with MainProcessExited; repair -> Stopped -> native start -> Ready; Hermes chat and WhatsApp replies work, pairing retained.
 - [x] Owner live test: subsequent normal stop/start and autonomous WhatsApp communication passed (2026-11-25).
 - [x] Record premature NemoClaw startup probe and unknown WhatsApp diagnostics despite working service; do not rebuild on this evidence.
-- [ ] Final exact-head CI, owner squash-merge and post-merge baseline checkpoint.
+- [x] Final exact-head CI green; owner squash-merged PR #12 (`5d1cde5`).
+- [ ] Merge this documentation-only baseline checkpoint.
 - [ ] Remove emergency helper when NemoClaw pins a release with adequate native Error recovery. No new recovery infrastructure.
-- [ ] Separate follow-up PR #10: post-onboarding WhatsApp reminder; fresh wizard display not yet owner-tested. PR #9: private-host consent; separate acceptance.
+- [x] PRs #9 and #10 also squash-merged after green exact-head CI (`bcf47e4`, `3ae70cb`); live UX checks remain deferred to next onboarding.
+- [ ] Share short confirmation on upstream OpenShell #3440; connector returned HTTP 403, owner can post manually.
 
 ## Live acceptance and merge handoff (2026-11-23)
 
@@ -92,7 +94,7 @@ scanner not available (not to be hidden).
 - [x] Add success-only conditional-in-wording reminder to AIW's vendor onboarding call; no new menu/configuration.
 - [x] Owner live test of existing pairing and end-to-end WhatsApp after recovery and normal stop/start passed on 2026-11-25 (PR #12).
 - [ ] Confirm reminder display during next fresh onboarding or resume; no new sandbox solely for this reminder.
-- [ ] Exact-head CI and owner squash-merge.
+- [x] Exact-head CI green; owner squash-merged PR #10 (`3ae70cb`).
 
 ## Historical extraction milestones — Issue #78
 
@@ -129,8 +131,8 @@ scanner not available (not to be hidden).
 - [x] **Priority 3, independent new sandbox:** the owner created and used `testhermes03` through official onboarding and preserved the two older `Error` sandboxes. **Not done and not required for this PR:** Hermes ZIP import, rehabilitation or deletion of `testhermes01`/`testhermes02`.
 - [x] **Priority 4, scoped reboot qualification:** sandbox, gateway and WSL termination/restart gates passed; the original full Windows restart exposed the missing Podman callback alias. A subsequent full Windows restart **passed** with explicit NVIDIA-equivalent host-IP repair *before* starting `testhermes03`; native Hermes conversation persisted. An automatic reboot-time vendor fix is still outstanding.
 - [ ] **Primary product value** after basic agent access: [Linux Issue #2](https://github.com/SomeSunlight/ai-workstation-linux/issues/2) captures an actual local Strata/Hermes technical task, secure browser/HTML5 visual preview, and minimal trusted toolchain; prior offline Canvas harness worked, browser-based preview was unavailable (Chromium/Playwright download 403). Do not block it on full WSL/Windows reboot certification. See `docs/restart-qualification.md`.
-- [x] Windows [Draft PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85) contains an *opt-in read-only* pinned version/status/verify adapter; it remains **open**, and the independent pinned production handoff is not merged. Windows PR #84 (penguin launcher) has merged.
-- [ ] After Linux PR #5 is **approved and merged**, update the Windows [PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85) candidate pin to the **merged Linux commit** and qualify the remaining independent cutover. Do not infer a Linux version from a Windows branch.
+- [x] Windows [PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85) and PR #84 merged; pinned handoff completed.
+- [x] Linux PR #7 and Windows PR #85 merged; independent pinned handoff completed.
 - [ ] Owner-approved merges and retirement of the original monolithic Linux code.
 
 ## Post-Windows-restart operational UX — Issues #3 and #4
@@ -155,7 +157,7 @@ scanner not available (not to be hidden).
 - [x] Operator/README/restart instructions updated to distinguish old incident from successful manual recovery.
 - [x] PR #5 **exact-head** CI green after documentation reconciliation (both Linux source/operator and Ansible-contract jobs; revalidate the very final commit in the PR checks).
 - [x] Owner accepted PR #5 and squash-merged it into main (2026-11-22).
-- [ ] Post-merge: verify `main` revision and handoff the Windows pin only through the separate Windows draft PR.
+- [x] Windows pin handoff completed in merged PR #85.
 
 ## Explicit private inference host consent — Issue #8
 
@@ -164,5 +166,6 @@ scanner not available (not to be hidden).
 - [x] Extend offline tests and operator documentation.
 - [x] Owner UX correction: present the consent review directly in both interactive onboarding paths, with Enter to continue, edit and cancel; preserve unattended invocation semantics. Add regression tests.
 - [x] Diagnose red offline cockpit test: Python buffered stdin consumed subsequent Bash menu selections; use bounded single-line reads on non-TTY streams, retaining ordinary terminal input.
-- [ ] Verify final exact-head CI and owner live acceptance (fresh onboarding/resume); no new sandbox solely to test the menu if deferred by owner.
-- [ ] Owner squash-merge and post-merge baseline checkpoint.
+- [x] Final exact-head CI green.
+- [ ] Live consent review on next fresh onboarding/resume; no new sandbox solely for this test.
+- [x] Owner squash-merged PR #9 (`bcf47e4`).
