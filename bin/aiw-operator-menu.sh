@@ -317,9 +317,9 @@ operator_menu() {
         gateway_summary
         printf ' 1) My Hermes sandboxes (chat / resume / start / stop)\n'
         printf ' 2) Create another Hermes sandbox (NemoClaw wizard)\n'
-        printf ' 5) Trusted private inference hosts (optional onboarding setting)\n'
         printf ' 3) Shared gateway / post-reboot host preparation\n'
         printf ' 4) Advanced / diagnostics\n'
+        printf ' 5) Trusted private inference hosts (optional onboarding setting)\n'
         printf ' q) Exit AIW (remain in Linux shell)\n'
         read -r -p 'Selection: ' choice || return
         case "$choice" in
