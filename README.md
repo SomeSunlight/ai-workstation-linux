@@ -117,3 +117,5 @@ policy then require **no Windows Dispatcher build**.
 
 Repository ownership and user approval rules are specified in
 [the migration contract](https://github.com/SomeSunlight/ai-workstation/blob/feat/78-linux-project-handoff/docs/linux-repository-handoff.md).
+
+For private DNS inference endpoints, use cockpit option 5 to explicitly approve exact hostnames before onboarding. The consent persists across shells and applies only to AIW onboarding/resume. See [operator guide](docs/operator.md#explicit-private-inference-host-consent).
