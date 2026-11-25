@@ -15,7 +15,20 @@ AIW_PODMAN_HOST_CIDR=169.254.2.2/32
 vendor_hermes() {
     local options="${NODE_OPTIONS:-}"
     NODE_OPTIONS="${options:+$options }--disable-warning=ExperimentalWarning" \
-        command nemohermes "$@"
+        command nemohermes "$@" || return $?
+    if [[ "${1:-}" == onboard ]]; then
+    cat <<'EOF'
+
+If you enabled WhatsApp, complete pairing BEFORE starting a Hermes chat:
+  1. AIW -> My Hermes sandboxes -> select the new sandbox -> Open shell inside sandbox.
+  2. Inside that sandbox (not WSL and not the Hermes chat), run: hermes whatsapp
+  3. Keep the existing allowlist; scan the QR in WhatsApp -> Linked devices.
+  4. Exit the sandbox shell and check: nemohermes NAME channels status --channel whatsapp
+     Replace NAME with your sandbox name. If a restart is needed, use the
+     supported NemoClaw-managed gateway procedure, not hermes gateway stop/run.
+EOF
+
+    fi
 }
 
 gateway_address_state() {
