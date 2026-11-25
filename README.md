@@ -10,7 +10,14 @@ entrypoint. **NemoClaw/OpenShell remain the sole owners of sandbox, session,
 credential, provider and policy management.** No competing AIW supervisor
 or sandbox inventory is introduced.
 
-## Current development status — 2026-11-22
+## Current development status — 2026-11-25
+
+Linux PR #7 and Windows PR #85 are merged. NemoClaw v0.0.145 with
+OpenShell 0.0.116 was qualified in the separate `AIW-Nemo-New` WSL.
+Owner live-tested the explicitly manual [temporary Error recovery](docs/nemoclaw-recovery.md)
+(PR #12): Hermes chat, retained WhatsApp pairing, and subsequent native
+stop/start with messaging passed. This is not general crash recovery.
+The normal operator workflow remains vendor-owned.
 
 The independent Linux repository's initial extraction
 ([PR #1](https://github.com/SomeSunlight/ai-workstation-linux/pull/1))
@@ -36,7 +43,7 @@ addition to offline CI coverage.
 Windows [PR #84](https://github.com/SomeSunlight/ai-workstation/pull/84)
 (the penguin shell launcher) is **merged**; the independent pinned
 Windows/Linux handoff [PR #85](https://github.com/SomeSunlight/ai-workstation/pull/85)
-remains **draft**. A working penguin is not proof that the entire
+has **merged**. A working penguin is not proof that the entire
 cross-repository production cutover is complete.
 
 ## Linux entrypoints
@@ -96,7 +103,7 @@ also been successfully tested by the owner (2026-11-22). See
 and [operator guide](docs/operator.md).
 
 The owner has previously verified a native encrypted Hermes backup
-outside WSL, but no import test. NemoClaw v0.0.145 (2026-11-18) is newer than the pinned v0.0.144;
+outside WSL, but no import test. NemoClaw v0.0.145 is the qualified pin;
 **`./install.sh install` is not a supported upgrade shortcut**.
 Version changes need a separate, explicit vendor-compatible operation.
 Hermes browser/HTML preview and local Strata are tracked by
