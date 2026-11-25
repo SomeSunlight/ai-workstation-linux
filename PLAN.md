@@ -150,4 +150,5 @@ scanner not available (not to be hidden).
 - [x] Inspect current onboarding, operator menu and offline contracts.
 - [x] Implement bounded per-user consent and onboarding-only environment.
 - [x] Extend offline tests and operator documentation.
+- [ ] Owner UX correction: present the consent review directly in both interactive onboarding paths, with Enter to continue, edit and cancel; preserve unattended invocation semantics. Add regression tests.
 - [ ] Verify exact review head; obtain owner acceptance before merge.
