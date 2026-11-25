@@ -286,6 +286,11 @@ operator_sandbox_menu() {
     done
 }
 
+operator_onboard() {
+    local aiw_onboard_interactive=1
+    onboard "$@"
+}
+
 operator_advanced_menu() {
     local choice
     while true; do
@@ -302,7 +307,7 @@ operator_advanced_menu() {
             2) "$ROOT/install.sh" verify --profile nemoclaw-podman || : ;;
             3) network_check || : ;;
             4) vendor_hermes --help || : ;;
-            5) onboard --resume || : ;;
+            5) operator_onboard --resume || : ;;
             0|'') return ;;
             *) printf 'No action taken.\n' ;;
         esac
@@ -319,13 +324,11 @@ operator_menu() {
         printf ' 2) Create another Hermes sandbox (NemoClaw wizard)\n'
         printf ' 3) Shared gateway / post-reboot host preparation\n'
         printf ' 4) Advanced / diagnostics\n'
-        printf ' 5) Trusted private inference hosts (optional onboarding setting)\n'
         printf ' q) Exit AIW (remain in Linux shell)\n'
         read -r -p 'Selection: ' choice || return
         case "$choice" in
             1) operator_sandbox_menu ;;
-            5) python3 "$ROOT/bin/aiw-trusted-hosts.py" configure || : ;;
-            2) printf 'For private DNS endpoints, configure trusted hosts with option 5 first.\n'; onboard || printf 'Onboarding stopped; no automatic rebuild.\n' >&2 ;;
+            2) operator_onboard || printf 'Onboarding stopped; no automatic rebuild.\n' >&2 ;;
             3) gateway_menu ;;
             4) operator_advanced_menu ;;
             q|Q) return ;;
