@@ -286,6 +286,11 @@ operator_sandbox_menu() {
     done
 }
 
+operator_onboard() {
+    local aiw_onboard_interactive=1
+    onboard "$@"
+}
+
 operator_advanced_menu() {
     local choice
     while true; do
@@ -302,7 +307,7 @@ operator_advanced_menu() {
             2) "$ROOT/install.sh" verify --profile nemoclaw-podman || : ;;
             3) network_check || : ;;
             4) vendor_hermes --help || : ;;
-            5) onboard --resume || : ;;
+            5) operator_onboard --resume || : ;;
             0|'') return ;;
             *) printf 'No action taken.\n' ;;
         esac
@@ -323,7 +328,7 @@ operator_menu() {
         read -r -p 'Selection: ' choice || return
         case "$choice" in
             1) operator_sandbox_menu ;;
-            2) onboard || printf 'Onboarding stopped; no automatic rebuild.\n' >&2 ;;
+            2) operator_onboard || printf 'Onboarding stopped; no automatic rebuild.\n' >&2 ;;
             3) gateway_menu ;;
             4) operator_advanced_menu ;;
             q|Q) return ;;

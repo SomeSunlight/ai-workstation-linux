@@ -54,6 +54,9 @@ if [[ "${1:-}" == list && "${2:-}" == --json ]]; then
     fi
     exit 0
 fi
+if [[ "${1:-}" == onboard ]]; then
+    printf 'trusted=%s;args=%s\n' "${NEMOCLAW_TRUSTED_PRIVATE_HOSTS:-}" "$*" >> "$FAKE_NEMO_TRACE"
+fi
 printf '%s\n' "$*" >> "$FAKE_NEMO_TRACE"
 if [[ "${2:-}" == status && "${3:-}" == --json ]]; then
     case "$1" in
@@ -271,3 +274,66 @@ printf '3\n0\nq\n' | invoke menu > "$tmp/menu.log"
 grep -Fq 'Shared gateway (all sandboxes)' "$tmp/menu.log"
 
 echo '[OK] AIW cockpit: multi-sandbox navigation, vendor lifecycle and reboot-safe guard.'
+
+smoke_step "Private inference consent: fresh, persisted, override, removal and unsafe input"
+unset NEMOCLAW_TRUSTED_PRIVATE_HOSTS
+helper="$ROOT/bin/aiw-trusted-hosts.py"
+hosts() { HOME="$tmp" python3 "$helper" "$@"; }
+[[ -z "$(hosts effective)" ]]
+# Source the exact production onboard function with runtime mocked; no socket needed.
+# The function is extracted without changing its body.
+onboard_body="$(sed -n '/^onboard() {$/,/^}$/p' "$ROOT/bin/aiw-nemo")"
+cat > "$tmp/onboard-test" <<'MOCK'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+export PATH="$HOME/.local/bin:$PATH"
+export NEMOCLAW_GATEWAY_RUNTIME=podman
+source "$ROOT/bin/aiw-operator-menu.sh"
+check_runtime() { :; }
+MOCK
+printf '%s\n' "$onboard_body" 'show_version() { :; }' 'case "${1:-}" in menu) operator_menu ;; *) onboard "$@" ;; esac' >> "$tmp/onboard-test"
+onboard_mock() {
+    HOME="$tmp" ROOT="$ROOT" FAKE_NEMO_TRACE="$trace" bash "$tmp/onboard-test" "$@"
+}
+# Actual cockpit create/resume dispatch with only runtime preflight mocked.
+before="$(wc -l < "$trace")"
+printf '2\n0\nq\n' | onboard_mock menu > "$tmp/menu.log"
+grep -Fq 'Trusted private inference hosts: (none configured)' "$tmp/menu.log"
+[[ "$(wc -l < "$trace")" == "$before" ]]
+printf '2\n\nq\n' | onboard_mock menu > "$tmp/menu.log"
+grep -Fxq 'trusted=;args=onboard --no-gpu' "$trace"
+printf '2\n1\ninference.example.test\ny\n\nq\n' | onboard_mock menu > "$tmp/menu.log"
+grep -Fq 'Trusted private inference hosts: inference.example.test' "$tmp/menu.log"
+[[ "$(hosts effective)" == inference.example.test ]]
+[[ "$(stat -c %a "$tmp/.aiw-private-inference")" == 700 ]]
+[[ "$(stat -c %a "$tmp/.aiw-private-inference/hosts")" == 600 ]]
+printf '4\n5\n\n0\nq\n' | onboard_mock menu > "$tmp/menu.log"
+grep -Fq 'Trusted private inference hosts: inference.example.test' "$tmp/menu.log"
+onboard_mock </dev/null
+onboard_mock --resume </dev/null
+grep -Fxq 'trusted=inference.example.test;args=onboard --no-gpu' "$trace"
+grep -Fxq 'trusted=inference.example.test;args=onboard --no-gpu --resume' "$trace"
+NEMOCLAW_TRUSTED_PRIVATE_HOSTS=override.example.test onboard_mock --resume
+grep -Fxq 'trusted=override.example.test;args=onboard --no-gpu --resume' "$trace"
+NEMOCLAW_TRUSTED_PRIVATE_HOSTS='' onboard_mock
+grep -Fxq 'trusted=;args=onboard --no-gpu' "$trace"
+[[ "$(hosts effective)" == inference.example.test ]]
+for invalid in '*.example.test' '10.0.0.0/8' '127.0.0.1' 'https://example.test' 'example.test:443' '$(id)' 'bad..test' $'good.test\r' 'good.test,'; do
+    if NEMOCLAW_TRUSTED_PRIVATE_HOSTS="$invalid" onboard_mock > "$tmp/fail" 2>&1; then exit 1; fi
+    if printf '%s\ny\n' "$invalid" | hosts configure > "$tmp/fail" 2>&1; then exit 1; fi
+done
+printf 'other.example.test\nn\n' | hosts configure
+[[ "$(hosts effective)" == inference.example.test ]]
+printf '4\n5\n1\n-\ny\n\n0\nq\n' | onboard_mock menu > "$tmp/menu.log"
+[[ -z "$(hosts effective)" ]]
+onboard_mock --resume
+grep -Fxq 'trusted=;args=onboard --no-gpu --resume' "$trace"
+printf 'bad host\n' > "$tmp/.aiw-private-inference/hosts"
+if onboard_mock > "$tmp/fail" 2>&1; then exit 1; fi
+printf '\n' > "$tmp/.aiw-private-inference/hosts"
+chmod 644 "$tmp/.aiw-private-inference/hosts"
+if hosts effective > "$tmp/fail" 2>&1; then exit 1; fi
+rm "$tmp/.aiw-private-inference/hosts"
+ln -s "$tmp/trace" "$tmp/.aiw-private-inference/hosts"
+if hosts effective > "$tmp/fail" 2>&1; then exit 1; fi
+echo '[OK] Private inference consent contracts.'

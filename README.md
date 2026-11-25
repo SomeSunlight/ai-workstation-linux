@@ -124,3 +124,5 @@ policy then require **no Windows Dispatcher build**.
 
 Repository ownership and user approval rules are specified in
 [the migration contract](https://github.com/SomeSunlight/ai-workstation/blob/feat/78-linux-project-handoff/docs/linux-repository-handoff.md).
+
+Both Create sandbox and Resume interrupted onboarding now show the trusted private inference host review before the official wizard. Press Enter to keep the displayed configuration, or explicitly approve exact hostnames if needed. The consent persists across shells and applies only to AIW onboarding/resume. See [operator guide](docs/operator.md#explicit-private-inference-host-consent).
