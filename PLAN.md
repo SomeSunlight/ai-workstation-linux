@@ -86,6 +86,14 @@ editing, and keep OpenShell under NemoClaw version ownership.
 Follow-up: Windows launcher revision warning and Hermes `tirith`
 scanner not available (not to be hidden).
 
+## WhatsApp onboarding reminder — PR #10 / Issue #13
+
+- [x] Keep pairing manual in the sandbox shell and managed gateway lifecycle with NemoClaw.
+- [x] Add success-only conditional-in-wording reminder to AIW's vendor onboarding call; no new menu/configuration.
+- [x] Owner live test of existing pairing and end-to-end WhatsApp after recovery and normal stop/start passed on 2026-11-25 (PR #12).
+- [ ] Confirm reminder display during next fresh onboarding or resume; no new sandbox solely for this reminder.
+- [ ] Exact-head CI and owner squash-merge.
+
 ## Historical extraction milestones — Issue #78
 
 - [x] Repository initialized; development proceeds in a draft PR, never in deployed WSL.
