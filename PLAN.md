@@ -151,4 +151,6 @@ scanner not available (not to be hidden).
 - [x] Implement bounded per-user consent and onboarding-only environment.
 - [x] Extend offline tests and operator documentation.
 - [x] Owner UX correction: present the consent review directly in both interactive onboarding paths, with Enter to continue, edit and cancel; preserve unattended invocation semantics. Add regression tests.
-- [ ] Verify exact review head; obtain owner acceptance before merge.
+- [x] Diagnose red offline cockpit test: Python buffered stdin consumed subsequent Bash menu selections; use bounded single-line reads on non-TTY streams, retaining ordinary terminal input.
+- [ ] Verify final exact-head CI and owner live acceptance (fresh onboarding/resume); no new sandbox solely to test the menu if deferred by owner.
+- [ ] Owner squash-merge and post-merge baseline checkpoint.
