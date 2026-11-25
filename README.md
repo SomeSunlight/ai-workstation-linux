@@ -17,7 +17,9 @@ OpenShell 0.0.116 was qualified in the separate `AIW-Nemo-New` WSL.
 Owner live-tested the explicitly manual [temporary Error recovery](docs/nemoclaw-recovery.md)
 (PR #12): Hermes chat, retained WhatsApp pairing, and subsequent native
 stop/start with messaging passed. This is not general crash recovery.
-The normal operator workflow remains vendor-owned.
+The normal operator workflow remains vendor-owned. PRs #9, #10 and #12
+are squash-merged with green exact-head CI. The private-host consent review
+and WhatsApp reminder await their next fresh live onboarding check.
 
 The independent Linux repository's initial extraction
 ([PR #1](https://github.com/SomeSunlight/ai-workstation-linux/pull/1))
@@ -28,7 +30,7 @@ and offline tests. Linux
 was owner-accepted and squash-merged. The operator-first cockpit and
 consented reboot preflight are available on `main`. A separate
 [Issue #6](https://github.com/SomeSunlight/ai-workstation-linux/issues/6)
-tracks NVIDIA v0.0.145 qualification **only on a fresh WSL instance**,
+tracked NVIDIA v0.0.145 qualification **only on a fresh WSL instance**,
 without upgrading or deleting the prior `AIW-Nemo` environment.
 
 The operator has **already exercised the candidate on the actual
@@ -95,8 +97,9 @@ failed to fetch its policy and entered OpenShell `Error`. The AIW
 operator now checks this exact host prerequisite **before** starting a
 stopped sandbox or launching/resuming a chat. If it is missing, it asks
 for explicit permission to re-establish NVIDIA's address with `sudo`
-and verifies the result. It does not rescue already-`Error` sandboxes,
-change OpenShell versions or alter Podman container metadata. The **full Windows reboot and manual repair have been live-tested** with
+and verifies the result. The normal reboot guard does not rescue already-`Error` sandboxes,
+change OpenShell versions or alter Podman container metadata. The separate
+manual emergency helper is documented above. The **full Windows reboot and manual repair have been live-tested** with
 `testhermes03`; the later conversation-resume menu improvement has
 also been successfully tested by the owner (2026-11-22). See
 [the evidence and upstream handoff](https://github.com/SomeSunlight/ai-workstation-linux/issues/3)
