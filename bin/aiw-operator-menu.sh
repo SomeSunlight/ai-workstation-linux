@@ -317,13 +317,15 @@ operator_menu() {
         gateway_summary
         printf ' 1) My Hermes sandboxes (chat / resume / start / stop)\n'
         printf ' 2) Create another Hermes sandbox (NemoClaw wizard)\n'
+        printf ' 5) Trusted private inference hosts (optional onboarding setting)\n'
         printf ' 3) Shared gateway / post-reboot host preparation\n'
         printf ' 4) Advanced / diagnostics\n'
         printf ' q) Exit AIW (remain in Linux shell)\n'
         read -r -p 'Selection: ' choice || return
         case "$choice" in
             1) operator_sandbox_menu ;;
-            2) onboard || printf 'Onboarding stopped; no automatic rebuild.\n' >&2 ;;
+            5) python3 "$ROOT/bin/aiw-trusted-hosts.py" configure || : ;;
+            2) printf 'For private DNS endpoints, configure trusted hosts with option 5 first.\n'; onboard || printf 'Onboarding stopped; no automatic rebuild.\n' >&2 ;;
             3) gateway_menu ;;
             4) operator_advanced_menu ;;
             q|Q) return ;;
