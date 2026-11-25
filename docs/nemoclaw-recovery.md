@@ -116,7 +116,7 @@ operators, identify the sandbox and verify the actual gateway database path:
  
 ```bash
 openshell --version
-openshell sandbox get testhermes04
+openshell sandbox get testhermes05
 systemctl --user show nemoclaw-openshell-gateway.service -p MainPID
 ```
 
@@ -127,7 +127,7 @@ If it differs, stop; the helper is not qualified for that installation.
 Use the UUID from OpenShell, not a Podman container ID:
 
 ```bash
-python3 bin/openshell-0116-repair.py testhermes04 0c432179-110f-4924-add7-fe98de73024f
+python3 bin/openshell-0116-repair.py testhermes05 7483e08d-c9e6-40ca-bec6-a789f2b96f46
 ```
 
 This defaults to a read-only eligibility check. It deliberately refuses
@@ -140,22 +140,28 @@ Only after a successful dry run and explicit acceptance of the risk:
  
 ```bash
 aiw gateway stop
-python3 bin/openshell-0116-repair.py testhermes04 0c432179-110f-4924-add7-fe98de73024f --apply
+python3 bin/openshell-0116-repair.py testhermes05 7483e08d-c9e6-40ca-bec6-a789f2b96f46 --apply
 aiw gateway start
-openshell sandbox get testhermes04
+openshell sandbox get testhermes05
 ```
 
 Restart the shared gateway even if the helper fails. If and only if the
 original sandbox is now Stopped, use the supported start path:
 
 ```bash
-aiw hermes start testhermes04
-openshell sandbox get testhermes04
+aiw hermes start testhermes05
+openshell sandbox get testhermes05
 ```
 
 Check original UUID, volumes, Hermes chat/inference and user data.
-No runtime acceptance yet. Remove this helper when the vendor pin provides
-native Error recovery. Do not use it to clear arbitrary Error states.
+Owner live acceptance (2026-11-25): testhermes05 recovered from Error to Stopped
+and Ready using this procedure. Hermes chat and WhatsApp replies worked without
+re-pairing; subsequent normal stop/start and messaging passed. The immediate
+NemoClaw post-start probe failed, but Hermes became usable after about 30 seconds.
+WhatsApp diagnostics reported unknown despite working messaging; do not rebuild
+on incomplete diagnostics alone. testhermes04 was already Stopped and needed
+no repair. Full workspace inventory was not separately compared. Remove this
+helper when the vendor pin provides native Error recovery. Do not use it to clear arbitrary Error states.
 
 ## Security and data
 
