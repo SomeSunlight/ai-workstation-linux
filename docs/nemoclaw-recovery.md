@@ -131,8 +131,10 @@ python3 bin/openshell-0116-repair.py testhermes04 0c432179-110f-4924-add7-fe98de
 ```
 
 This defaults to a read-only eligibility check. It deliberately refuses
-different failure conditions, recorded main-process exit codes, missing
-volumes, or running containers. If blocked, do not relax the checks.
+different failure conditions, missing volumes, or running containers.
+For MainProcessExited with a recorded exit code, only the phase is changed;
+[the pinned native Starting transition](https://github.com/ai-openshell/openshell/blob/v0.0.116/crates/openshell-server/src/compute/mod.rs)
+clears the exit code and retains the previous supervisor instance ID. If blocked, do not relax the checks.
 
 Only after a successful dry run and explicit acceptance of the risk:
  
