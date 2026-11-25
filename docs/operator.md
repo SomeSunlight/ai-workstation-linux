@@ -269,3 +269,19 @@ sensitive inventories.
   generic *selected sandbox readiness/start* step, while keeping
   Hermes conversation handling an agent-specific adapter. No
   parallel AIW sandbox/session registry is justified.
+
+## Explicit private inference host consent
+
+Before choosing **Create another Hermes sandbox**, select cockpit option **5 — Trusted private inference hosts** (or run `aiw-nemo trusted-hosts`). Enter only exact DNS hostnames you control, separated by commas, and confirm the displayed list with `y`. Enter keeps the existing list; `-` followed by confirmation removes it. No DNS lookup grants trust automatically. A private DNS answer can require this narrow upstream SSRF exception; it does not disable DNS pinning, TLS or other upstream checks.
+
+AIW stores only the approved list in `~/.aiw-private-inference/hosts` (directory 0700, file 0600). Both `aiw-nemo onboard` and `aiw-nemo onboard --resume` load it in new shells. An explicitly supplied `NEMOCLAW_TRUSTED_PRIVATE_HOSTS` replaces the saved list for that invocation, including an empty value; it is validated and never saved automatically. Invalid or unsafe configuration blocks onboarding. Use the menu to inspect or replace the list. No changes are made to existing sandboxes or policies. Removing consent affects future onboarding, not already registered policies.
+
+This is independent of the Podman callback alias `169.254.2.2/32` after a reboot. For direct `nemohermes` outside AIW, explicitly set the environment yourself (replace the example with your approved hostname):
+
+```bash
+export NEMOCLAW_TRUSTED_PRIVATE_HOSTS=inference.example.test
+export NEMOCLAW_GATEWAY_RUNTIME=podman
+nemohermes onboard --no-gpu
+```
+
+AIW does not modify shell startup files. Credentials remain exclusively in the upstream wizard.
