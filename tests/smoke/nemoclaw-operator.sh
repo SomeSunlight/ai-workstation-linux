@@ -280,10 +280,6 @@ unset NEMOCLAW_TRUSTED_PRIVATE_HOSTS
 helper="$ROOT/bin/aiw-trusted-hosts.py"
 hosts() { HOME="$tmp" python3 "$helper" "$@"; }
 [[ -z "$(hosts effective)" ]]
-printf '5\ninference.example.test\ny\nq\n' | invoke menu > "$tmp/menu.log"
-[[ "$(hosts effective)" == inference.example.test ]]
-[[ "$(stat -c %a "$tmp/.aiw-private-inference")" == 700 ]]
-[[ "$(stat -c %a "$tmp/.aiw-private-inference/hosts")" == 600 ]]
 # Source the exact production onboard function with runtime mocked; no socket needed.
 # The function is extracted without changing its body.
 onboard_body="$(sed -n '/^onboard() {$/,/^}$/p' "$ROOT/bin/aiw-nemo")"
@@ -295,12 +291,26 @@ export NEMOCLAW_GATEWAY_RUNTIME=podman
 source "$ROOT/bin/aiw-operator-menu.sh"
 check_runtime() { :; }
 MOCK
-printf '%s\n' "$onboard_body" 'onboard "$@"' >> "$tmp/onboard-test"
+printf '%s\n' "$onboard_body" 'show_version() { :; }' 'case "${1:-}" in menu) operator_menu ;; *) onboard "$@" ;; esac' >> "$tmp/onboard-test"
 onboard_mock() {
     HOME="$tmp" ROOT="$ROOT" FAKE_NEMO_TRACE="$trace" bash "$tmp/onboard-test" "$@"
 }
-onboard_mock
-onboard_mock --resume
+# Actual cockpit create/resume dispatch with only runtime preflight mocked.
+before="$(wc -l < "$trace")"
+printf '2\n0\nq\n' | onboard_mock menu > "$tmp/menu.log"
+grep -Fq 'Trusted private inference hosts: (none configured)' "$tmp/menu.log"
+[[ "$(wc -l < "$trace")" == "$before" ]]
+printf '2\n\nq\n' | onboard_mock menu > "$tmp/menu.log"
+grep -Fxq 'trusted=;args=onboard --no-gpu' "$trace"
+printf '2\n1\ninference.example.test\ny\n\nq\n' | onboard_mock menu > "$tmp/menu.log"
+grep -Fq 'Trusted private inference hosts: inference.example.test' "$tmp/menu.log"
+[[ "$(hosts effective)" == inference.example.test ]]
+[[ "$(stat -c %a "$tmp/.aiw-private-inference")" == 700 ]]
+[[ "$(stat -c %a "$tmp/.aiw-private-inference/hosts")" == 600 ]]
+printf '4\n5\n\n0\nq\n' | onboard_mock menu > "$tmp/menu.log"
+grep -Fq 'Trusted private inference hosts: inference.example.test' "$tmp/menu.log"
+onboard_mock </dev/null
+onboard_mock --resume </dev/null
 grep -Fxq 'trusted=inference.example.test;args=onboard --no-gpu' "$trace"
 grep -Fxq 'trusted=inference.example.test;args=onboard --no-gpu --resume' "$trace"
 NEMOCLAW_TRUSTED_PRIVATE_HOSTS=override.example.test onboard_mock --resume
@@ -314,7 +324,7 @@ for invalid in '*.example.test' '10.0.0.0/8' '127.0.0.1' 'https://example.test' 
 done
 printf 'other.example.test\nn\n' | hosts configure
 [[ "$(hosts effective)" == inference.example.test ]]
-printf '5\n-\ny\nq\n' | invoke menu > "$tmp/menu.log"
+printf '4\n5\n1\n-\ny\n\n0\nq\n' | onboard_mock menu > "$tmp/menu.log"
 [[ -z "$(hosts effective)" ]]
 onboard_mock --resume
 grep -Fxq 'trusted=;args=onboard --no-gpu --resume' "$trace"
